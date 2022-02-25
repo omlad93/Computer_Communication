@@ -12,7 +12,7 @@ Make sure to aplly all these changes for each sub-solution (in project propertie
 * add `Ws2_32.lib` to `Linker->Input->Additional Dependencies`  
 * add `_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS ` to `C/C++->Preprocessor->Preprocessor Definitions`  
 * add `../../utils/utils` to `C/C++->Additional Include Directories` (**no need on utils sub-solution**)  
-In addition make sure to modify utils to be `.lib` to 1General->Configuration Type->Static Library`  
+<br>In addition make sure to modify utils to be `.lib`: `General->Configuration Type->Static Library`  
 
 ## Task Managment:
 Sender: Iris
