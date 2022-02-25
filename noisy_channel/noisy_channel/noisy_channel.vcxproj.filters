@@ -18,10 +18,13 @@
     <ClCompile Include="noisy_channel.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\utils\utils\utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="noisy_channel.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

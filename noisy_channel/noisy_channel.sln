@@ -4,6 +4,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.31729.503
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "noisy_channel", "noisy_channel\noisy_channel.vcxproj", "{347BE8B0-2476-4652-B1CE-D320B23F9D67}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D} = {6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "utils", "..\utils\utils\utils.vcxproj", "{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +26,14 @@ Global
 		{347BE8B0-2476-4652-B1CE-D320B23F9D67}.Release|x64.Build.0 = Release|x64
 		{347BE8B0-2476-4652-B1CE-D320B23F9D67}.Release|x86.ActiveCfg = Release|Win32
 		{347BE8B0-2476-4652-B1CE-D320B23F9D67}.Release|x86.Build.0 = Release|Win32
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}.Debug|x64.ActiveCfg = Debug|x64
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}.Debug|x64.Build.0 = Debug|x64
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}.Debug|x86.ActiveCfg = Debug|Win32
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}.Debug|x86.Build.0 = Debug|Win32
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}.Release|x64.ActiveCfg = Release|x64
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}.Release|x64.Build.0 = Release|x64
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}.Release|x86.ActiveCfg = Release|Win32
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

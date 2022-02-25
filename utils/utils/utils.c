@@ -1,6 +1,17 @@
 #include "utils.h"
 
 // Bits Utility Functions
+
+int parity(int val, int mask){
+    int x = val & mask;
+    int y = x ^ (x >> 1);
+    y = y ^ (y >> 2);
+    y = y ^ (y >> 4);
+    y = y ^ (y >> 8);
+    y = y ^ (y >> 16);
+    return (y & 1) ? TRUE : FALSE;
+}
+
 char get_bit_from_char(char c, int idx) {
     char wanted_bit;
     assert(idx <= 7, "idx > 7");
@@ -10,7 +21,9 @@ char get_bit_from_char(char c, int idx) {
     return wanted_bit;
 }
 
-void get_next_bits(str data, char res[PARITY_BITS], int idx, int bit_count);
+void get_next_bits(str data, char res[PARITY_BITS], int idx, int bit_count) {
+
+}
 
 void get_message(str bits, char m[PARITY_BITS], int size) {
     int idx;
@@ -23,7 +36,6 @@ void get_message(str bits, char m[PARITY_BITS], int size) {
 }
 
 void parity_bits(char data[DECODED], char parity_bits[PARITY_BITS]) {
-    char p1, p2, p4, p8, p16;
     int numeric_data = from_binary(data);
     parity_bits[0] = parity(numeric_data, P1_MASK);
     parity_bits[1] = parity(numeric_data, P2_MASK);
@@ -40,7 +52,7 @@ char flip(char c, int idx) {
     if (flipped) {
         return c | (1 << (7 - idx));
     } else {
-        char t = 254;
+        unsigned char t = 254;
         for (int i = 0; i < 7 - idx; i++) {
             t = (t << 1) + 1;
         }
@@ -60,65 +72,65 @@ SOCKET create_socket() {
     return s;
 }
 
-void set_address(sockaddr* addr, int port, str ip) {
+void set_address(socketaddr* addr, int port, str ip) {
     addr->sin_family = AF_INET;
     addr->sin_port = port;
-    addr->sin_addr = (ip != NULL) ? inet_addr(ip) : htonl(INADDR_ANY);
+    addr->sin_addr.s_addr = (ip == NULL) ? htonl(INADDR_ANY) : inet_addr(ip);
 }
 
 int bind_socket(SOCKET s, socketaddr* addr) {
     WORD version_req = MAKEWORD(1, 1);
-    WSADATA data;
-    WSAStartup(version_req, &data);
-    assert(((bind(s, addr, sizeof(*addr))) < 0), "Bind < 0");
-    return True;
+    WSADATA wsa_data;
+    WSAStartup(version_req, &wsa_data);
+    int bind_condition = ((bind(s, (struct sockaddr*)addr, sizeof(*addr))) > 0);
+    assert(bind_condition, "Binding Failed");
+    return TRUE;
 }
 
 int read_socket(SOCKET s, socketaddr* addr, str data, int size) {
     int res;
     int l = sizeof(addr);
     WORD version_req = MAKEWORD(1, 1);
-    WSADATA data;
-    WSAStartup(version_req, &data);
-    res = recvfrom(s, data, size, 0, addr, &l);
-    assert_num(res >= 0, "Read Message Failed! -", WSAGetLastError());
+    WSADATA wsa_data;
+    WSAStartup(version_req, &wsa_data);
+    res = recvfrom(s, data, size, 0, (struct sockaddr*)addr, &l);
+    assert_num(res >= 0, "Read Message Failed", WSAGetLastError());
     return res;
 }
 
 int write_socket(SOCKET s, socketaddr* addr, str data, int size) {
+    WSADATA wsa_data;
     WORD version_req = MAKEWORD(1, 1);
-    WSADATA data;
-    WSAStartup(version_req, &data);
+    WSAStartup(version_req, &wsa_data);
     addr->sin_family = AF_INET;
-    int res = sendto(s, data, size, 0, addr, sizeof(struct sockaddr));
-    assert_num(res >= 0, "Write Message Failed! -", WSAGetLastError());
+    int res = sendto(s, data, size, 0, (struct sockaddr*)addr, sizeof(struct sockaddr));
+    assert_num(res >= 0, "Write Message Failed", WSAGetLastError());
     return res;
 }
 
 int server_loop(SOCKET s, socketaddr* addr, str data, int size) {
-    int status, keyboard;
+    int status;
     char user_buffer[MAX_LENGTH] = {0};
     fd_set fs;
-    int i = 0, len = 0;
+    int len = 0;
     struct timeval time_val;
-    char c;
     time_val.tv_sec = 0;
     time_val.tv_usec = 100;
-    while (True) {
-        FD_ZEROS(&fs);
+    while (TRUE) {
+        FD_ZERO(&fs);
         FD_SET(s, &fs);
         status = select(1, &fs, NULL, NULL, &time_val);
-        assert(status >= 0, 'Selection Failed [Server]');
+        assert(status >= 0, "Selection Failed [Server]");
         if (FD_ISSET(s, &fs)) {
             log_err("Reading Message From Sender");
-            len = socket_read(s, addr, data, size);
+            len = read_socket(s, addr, data, size);
             log_err("Message was %d Bits long");
             return len;
         } else {
             log_err("enter file name:");
-            scanf("%s", &user_buffer);
+            scanf_s("%s",user_buffer, MAX_LENGTH);
             log_err(user_buffer);
-            if strcmp (user_buffer, "quit") {
+            if (strcmp(user_buffer, "quit")) {
                 log_err("Recognized 'quit': aborting connection.");
                 return -1;
             }

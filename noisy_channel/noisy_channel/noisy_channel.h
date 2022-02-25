@@ -1,5 +1,5 @@
 #pragma once
-#include "utils/utils/utils.h"
+#include "../../utils/utils/utils.h"
 #define RANDOMIZE "-r"
 #define DETERMINISTIC "-d"
 #define random_double() (double)(rand() / RAND_MAX)
@@ -16,7 +16,7 @@ typedef struct Noise {
 } Noise;
 typedef Noise* Noise_p;
 
-Noise_p generate_noise(Noise_p noise, str noise_type, int a1, int a2);
+void generate_noise(Noise_p noise, str noise_type, int a1, int a2);
 
 void apply_deterministic(Noise_p noise, str data, int size);
 

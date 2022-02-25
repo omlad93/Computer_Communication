@@ -1,6 +1,7 @@
 #pragma once
 #include <conio.h>
 #include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,11 +9,7 @@
 #include <sys/types.h>
 #include <winsock2.h>
 
-#define _CRT_SECURE_NO_WARNINGS
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-#define True 1
-#define False 0
 #define not(x) (!x)
 #define xor (a, b)(a ^ b)
 #define from_binary(s) ((int)strtol(s, NULL, 2))
@@ -26,21 +23,20 @@
 #define P4_MASK from_binary("0001111000011110000111100001111")
 #define P8_MASK from_binary("0000000111111110000000011111111")
 #define P16_MASK from_binary("0000000000000001111111111111111")
-#define parity(x, mask) (__builtin_parity(x & mask))
-// #define log_err(x) printf(stderr, "%s\n".format(x))
+
 typedef struct sockaddr_in socketaddr;
 typedef char* str;
 
-void log_err(str message) {
+inline void log_err(str message) {
     fprintf(stderr, "%s\n", message);
 }
-void assert(int condition, str message) {
+inline void assert(int condition, str message) {
     if (not(condition)) {
         fprintf(stderr, "Assertion Error: %s\n", message);
         exit(-1);
     }
 }
-void assert_num(int condition, str message, int err_idx) {
+inline void assert_num(int condition, str message, int err_idx) {
     if (not(condition)) {
         fprintf(stderr, "Assertion Error: %s [%d]\n", message, err_idx);
         exit(-1);
