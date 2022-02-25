@@ -11,7 +11,7 @@ In this way each soultion ban be built and debugged independently but code can s
 Make sure to aplly all these changes for each sub-solution (in project properties):
 * add `Ws2_32.lib` to `Linker->Input->Additional Dependencies`
 * add `_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS ` to `C/C++->Preprocessor->Preprocessor Definitions`
-* add `../utils` to `C/C++->Additional Include Directories` (**no need on utils sub-solution**)
+* add `../../utils/utils` to `C/C++->Additional Include Directories` (**no need on utils sub-solution**)
 In addition make sure to modify utils to be `.lib` to 1General->Configuration Type->Static Library`
 
 ## Task Managment:
