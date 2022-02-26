@@ -9,7 +9,6 @@
 #include <sys/types.h>
 #include <winsock2.h>
 
-
 #define not(x) (!x)
 #define xor (a, b)(a ^ b)
 #define from_binary(s) ((int)strtol(s, NULL, 2))
@@ -17,6 +16,7 @@
 #define ENCODED 31
 #define PARITY_BITS 5
 #define MAX_LENGTH 1993
+#define FAIL -1
 
 #define P1_MASK from_binary("1010101010101010101010101010101")
 #define P2_MASK from_binary("0110011001100110011001100110011")
@@ -33,48 +33,128 @@ int sender_index;
 int receiver_index;
 int received_msg_size;
 
+/*
+    print message to stderr and create newline
+*/
 inline void log_err(str message) {
     fprintf(stderr, "%s\n", message);
 }
+
+/*
+    check condition:
+        if satisfied: does nothing.
+        else: log message and exit(FAIL)
+*/
 inline void assert(int condition, str message) {
     if (not(condition)) {
         fprintf(stderr, "Assertion Error: %s\n", message);
-        exit(-1);
+        exit(FAIL);
     }
 }
+
+/*
+    check condition:
+        if satisfied: does nothing.
+        else: log message with numeric err_idx and exit(FAIL))
+*/
 inline void assert_num(int condition, str message, int err_idx) {
     if (not(condition)) {
         fprintf(stderr, "Assertion Error: %s [%d]\n", message, err_idx);
-        exit(-1);
+        exit(FAIL);
     }
 }
 
 // Indexing is considering MSB as 0
 
 // Bits Utility Functions
+/*
+    A Function to Compute Parity of masked integer
+    Used for computing parity bits
+*/
+int parity(int val, int mask);
 
+/*
+    A function that return char[idx]
+    ret_val ∈ {'0','1'}
+    MSB = 0, LSB =7
+*/
 char get_bit_from_char(char c, int idx);
 
+/*
+TODO: IMPLEMENT
+*/
 void get_next_bits(str data, char res[PARITY_BITS], int idx, int bit_count);
 
+/*
+    TODO: Document
+*/
 void get_message(str bits, char m[PARITY_BITS], int size);
 
+/*
+    Return parity bits of DECODED char sequence
+    Translates binary sequence to integer
+    Masks according to idx op PB
+    parity_bits = [P1, P2, P4, P8, P16]
+*/
 void parity_bits(char data[DECODED], char parity[PARITY_BITS]);
 
+/*
+TODO: IMPLEMENT
+*/
 void attach(str message, char c[2], int mod, int size, int idx);
 
+/*
+    Return the value of a char with fillped bit in idx
+*/
 char flip(char c, int idx);
 
 // Sockets Utility Functions
 
+/*
+    Returns a new Socket
+    Makes sure the socket is valid
+*/
 SOCKET create_socket();
 
+/*
+    takes a socketaddr* and do three steps:
+    > set it to use Internet Protocol
+    > assign it to port
+    > if provided with an IP: assigns it
+      if didn't provid an IP: assigns a valid one
+*/
 void set_address(socketaddr* addr, int port, char* ip);
 
+/*
+    Binds a Socket to a socketaddr
+    asserting that binding succeeded
+*/
 int bind_socket(SOCKET socket, socketaddr* addr);
 
+/*
+    Function fot Reading information from socket
+    reads at most `size` bytes
+    information is saved in `data` vairable
+    returns size of actual bytes that read from socket
+    asserting no error occurred
+*/
 int read_socket(SOCKET socket, socketaddr* addr, str data, int size);
 
+/*
+    Function fot Writing information to socket
+    writes at most `size` bytes
+    information is written from `data` vairable
+    returns size of actual bytes that read from socket
+    asserting no error occurred
+*/
 int write_socket(SOCKET socket, socketaddr* addr, str data, int size);
 
+/*
+    A loop of waiting for information on socket
+    when there is information read it to `data` variable
+    return value is length of data read
+    can be called again for new file
+    if called again can be terminated nicely using `quit` as filename
+    Can be moved to server.c !
+*/
 int server_loop(SOCKET socket, socketaddr* addr, str data, int size);
