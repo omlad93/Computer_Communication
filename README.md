@@ -14,6 +14,8 @@ Make sure to aplly all these changes for each sub-solution (in project propertie
 * add `../../utils/utils` to `C/C++->Additional Include Directories` (**no need on utils sub-solution**)  
 <br>In addition make sure to modify utils to be `.lib`: `General->Configuration Type->Static Library`  
 
+After All that Also dependencies are needed to be defined (each sub-solution if dependent on utils)
+
 ## Task Managment:
 Sender: Iris
 Receiver: Iris

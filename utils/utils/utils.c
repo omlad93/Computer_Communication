@@ -2,7 +2,11 @@
 
 // Bits Utility Functions
 
-int parity(int val, int mask){
+/*
+    A Function to Compute Parity of masked integer
+    Used for computing parity bits
+*/
+int parity(int val, int mask) {
     int x = val & mask;
     int y = x ^ (x >> 1);
     y = y ^ (y >> 2);
@@ -12,19 +16,25 @@ int parity(int val, int mask){
     return (y & 1) ? TRUE : FALSE;
 }
 
+/*
+    A function that return char[idx]
+    ret_val ∈ {'0','1'}
+    MSB = 0, LSB =7
+*/
 char get_bit_from_char(char c, int idx) {
     char wanted_bit;
     assert(idx <= 7, "idx > 7");
-    idx = 7 - idx;
-    wanted_bit = idx & c;
+    wanted_bit = (1 << (7 - idx)) & c;
     wanted_bit = (wanted_bit) ? (char)(1) : (char)(0);
     return wanted_bit;
 }
 
 void get_next_bits(str data, char res[PARITY_BITS], int idx, int bit_count) {
-
 }
 
+/*
+    TODO: Document
+*/
 void get_message(str bits, char m[PARITY_BITS], int size) {
     int idx;
     unsigned char c = m[0];
@@ -35,6 +45,12 @@ void get_message(str bits, char m[PARITY_BITS], int size) {
     }
 }
 
+/*
+    Return parity bits of DECODED char sequence
+    Translates binary sequence to integer
+    Masks according to idx op PB
+    parity_bits = [P1, P2, P4, P8, P16]
+*/
 void parity_bits(char data[DECODED], char parity_bits[PARITY_BITS]) {
     int numeric_data = from_binary(data);
     parity_bits[0] = parity(numeric_data, P1_MASK);
@@ -46,6 +62,9 @@ void parity_bits(char data[DECODED], char parity_bits[PARITY_BITS]) {
 
 void attach(str message, char c[2], int mod, int size, int idx);
 
+/*
+    Return the value of a char with fillped bit in idx
+*/
 char flip(char c, int idx) {
     char origin_bit = get_bit_from_char(c, idx);
     char flipped = 1 - origin_bit;
@@ -62,6 +81,10 @@ char flip(char c, int idx) {
 
 // Sockets Utility Functions
 
+/*
+    Returns a new Socket
+    Makes sure the socket is valid
+*/
 SOCKET create_socket() {
     SOCKET s;
     WORD version_req = MAKEWORD(1, 1);
@@ -72,12 +95,23 @@ SOCKET create_socket() {
     return s;
 }
 
+/*
+    takes a socketaddr* and do three steps:
+    > set it to use Internet Protocol
+    > assign it to port
+    > if provided with an IP: assigns it
+      if didn't provid an IP: assigns a valid one
+*/
 void set_address(socketaddr* addr, int port, str ip) {
     addr->sin_family = AF_INET;
     addr->sin_port = port;
     addr->sin_addr.s_addr = (ip == NULL) ? htonl(INADDR_ANY) : inet_addr(ip);
 }
 
+/*
+    Binds a Socket to a socketaddr
+    asserting that binding succeeded
+*/
 int bind_socket(SOCKET s, socketaddr* addr) {
     WORD version_req = MAKEWORD(1, 1);
     WSADATA wsa_data;
@@ -87,6 +121,13 @@ int bind_socket(SOCKET s, socketaddr* addr) {
     return TRUE;
 }
 
+/*
+    Function fot Reading information from socket
+    reads at most `size` bytes
+    information is saved in `data` vairable
+    returns size of actual bytes that read from socket
+    asserting no error occurred
+*/
 int read_socket(SOCKET s, socketaddr* addr, str data, int size) {
     int res;
     int l = sizeof(addr);
@@ -98,6 +139,13 @@ int read_socket(SOCKET s, socketaddr* addr, str data, int size) {
     return res;
 }
 
+/*
+    Function fot Writing information to socket
+    writes at most `size` bytes
+    information is written from `data` vairable
+    returns size of actual bytes that read from socket
+    asserting no error occurred
+*/
 int write_socket(SOCKET s, socketaddr* addr, str data, int size) {
     WSADATA wsa_data;
     WORD version_req = MAKEWORD(1, 1);
@@ -108,6 +156,14 @@ int write_socket(SOCKET s, socketaddr* addr, str data, int size) {
     return res;
 }
 
+/*
+    A loop of waiting for information on socket
+    when there is information read it to `data` variable
+    return value is length of data read
+    can be called again for new file
+    if called again can be terminated nicely using `quit` as filename
+    Can be moved to server.c !
+*/
 int server_loop(SOCKET s, socketaddr* addr, str data, int size) {
     int status;
     char user_buffer[MAX_LENGTH] = {0};
@@ -128,11 +184,11 @@ int server_loop(SOCKET s, socketaddr* addr, str data, int size) {
             return len;
         } else {
             log_err("enter file name:");
-            scanf_s("%s",user_buffer, MAX_LENGTH);
+            scanf_s("%s", user_buffer, MAX_LENGTH);
             log_err(user_buffer);
             if (strcmp(user_buffer, "quit")) {
                 log_err("Recognized 'quit': aborting connection.");
-                return -1;
+                return FAIL;
             }
         }
     }
