@@ -25,6 +25,28 @@ void update_sharedata(int source, int port, str ip) {
     sdp->open_channel = sdp->sender_ready & sdp->receiver_ready;
 }
 
+/* calculates the hamming parity bit in pos - 1 */
+int calc_hamming_bit(int pos, char encoded_msg[ENCODED]){
+    int i,j,cnt;
+    cnt  = 0;
+    i = pos - 1;
+    while(i < 31){
+        for(j = i; j < (i + pos); j++){
+            if(encoded_msg[j] == 1){
+                cnt++;
+            }
+            i = i+2*pos;
+        }
+        if(cnt % 2 == 0){
+            return 0;
+        }
+        else{
+            return 1;
+        }
+    }
+
+}
+
 // Bits Utility Functions
 
 /*

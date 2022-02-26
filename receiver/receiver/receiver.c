@@ -7,6 +7,7 @@ int main(int argc, char* argv[]) {
 	  int port = atoi(argv[2]);
 	  char* filename;
     char msg[MAX_LENGTH];
+    char fixed_msg[MAX_LENGTH];
     int status = 0;
     int size;
     SOCKET socket;
@@ -38,9 +39,8 @@ int main(int argc, char* argv[]) {
             } else {
                 received_msg_size += status;
 
-
                 //encode hamming message
-                fix_hamming_message(msg, received_msg_size);
+                fix_hamming_message(msg, fixed_msg, received_msg_size);
 
                 //write the received message to file
                 update_receiver_file(file, msg);
@@ -73,9 +73,7 @@ int main(int argc, char* argv[]) {
 
     // cleanup
     closesocket(socket);
-
 	fclose(file);
-    
 
 }
 
@@ -87,6 +85,38 @@ void update_receiver_file(FILE *file, char *msg){
     received_msg_size = 0;
 }
 
+void fix_hamming_message(char msg[MAX_LENGTH], char fixed_msg[MAX_LENGTH], int msg_size){
+    char substring[ENCODED];
+    for(int i = 0; i < (msg_size / ENCODED); i++){
+        calc_curr_substring(i, msg, substring);
+        fix_hamming_substring(i, msg, fixed_msg);
+        server_stats->num_received += ENCODED;    
+    }
+
+}
+
+void calc_curr_substring(int start, char msg[MAX_LENGTH], char substring[ENCODED]){
+    for(int i = 0; i < 31; i++){
+        substring[i] = msg[start + i];
+    }
+}
+
+void fix_hamming_substring(int start, char substring[ENCODED], char fixed_msg[MAX_LENGTH]){
+    int error_pos = 0;
+    for(int i = 0; i < 5; i++){
+        int pos = (int)pow(2, i);
+        int hamming_bit = calc_hamming_bit(pos, substring);
+        if (hamming_bit != 0){
+            error_pos += pos;
+        }
+        if(error_pos != 1){
+            fixed_msg[i+error_pos] = ~fixed_msg[i+error_pos];
+        }
+    }
+
+    
+
+}
 
 void respond_to_sender(SOCKET socket, socketaddr *channel_addr) {
 	char msg[100];

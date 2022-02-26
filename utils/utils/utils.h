@@ -84,6 +84,7 @@ SharedData sd;
 */
 void update_sharedata(int source, int port, str ip);
 
+int calc_hamming_bit(int pos, char encoded_msg[ENCODED]);
 
 // Bits Utility Functions
 /*

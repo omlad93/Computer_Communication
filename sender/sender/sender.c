@@ -6,8 +6,8 @@ int main(int argc, char* argv[]) {
     char* ip = argv[1];
 	int port = atoi(argv[2]);
 	char* filename;
-    char *decoded_msg[DECODED];
-    char *encoded_msg[ENCODED];
+    char decoded_msg[DECODED];
+    char encoded_msg[ENCODED];
     //char *total_encoded_msg[];
 
     //create a socket
@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     scanf("%s", &filename);
     //file = fopen(filename, "rb");
     while (!strcmp(filename, "quit")){
-        file = fopen(filename, "wb");
+        file = fopen(filename, "rb");
         if (file == NULL){
             printf("Error in openninf file\n");
             break;
@@ -62,9 +62,67 @@ int main(int argc, char* argv[]) {
 	fclose(file);  
 }
 
-void hamming(char* decoded_msg, char* encoded_msg){
+/* applaies hamming code to 26 bits message
+    returns 31 bits message*/
+/*void hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]){
+    char parity[PARITY_BITS];
+    parity_bits(decoded_msg, parity);
+    int j = 0;
+    for(int i = 0; i < ENCODED; i++){
+        switch (i){
+            case 1:
+                encoded_msg[i] = parity[0];
+                break;
+            case 2:
+                encoded_msg[i] = parity[1];
+                break;
+            case 4:
+                encoded_msg[i] = parity[2];
+                break;
+            case 8:
+                encoded_msg[i] = parity[3];
+                break;
+            case 16:
+                encoded_msg[i] = parity[4];
+                break;
+            default:
+                encoded_msg[i] = decoded_msg[j];
+                j++;
+                break;
+        }
+    }
+
+}*/
+
+
+/* applaies hamming code to 26 bits message
+    returns 31 bits message*/
+void hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]){
+    int j,k;
+    j = 0;
+    k = 0; 
+    for(int i = 0; i < 31; i++){
+        //check if i is an hamming bit position
+        if(i == ((int)pow(2,k)-1)){ 
+            encoded_msg[i] = 0;
+            k++;
+        }
+        //copy the origin msg bit
+        else{
+            encoded_msg[i] = decoded_msg[j];
+            j++;
+        }
+    }
+
+    //calculate hamming bits
+    for(int i = 0; i < 5; i++){
+        int pos = (int)pow(2,i);
+        int hamming_bit = calc_hamming_bit(pos, encoded_msg);
+        encoded_msg[pos - 1] = hamming_bit;
+    }
 
 }
+
 
 int print_output(){
     

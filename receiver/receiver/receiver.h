@@ -30,4 +30,8 @@ char RECEIVER_BUF[MAX_LENGTH];
 
 void update_receiver_file(FILE *file, char *msg);
 
-void fix_hamming_message(char* parsed_msg, int msg_size);
+void fix_hamming_message(char msg[MAX_LENGTH], char fixed_msg[MAX_LENGTH], int msg_size);
+
+void fix_hamming_substring(int start, char msg[MAX_LENGTH], char fixed_msg[MAX_LENGTH]);
+
+void calc_curr_substring(int start, char msg[MAX_LENGTH], char substring[ENCODED]);
