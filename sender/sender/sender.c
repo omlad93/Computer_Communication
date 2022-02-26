@@ -18,14 +18,19 @@ int main(int argc, char* argv[]) {
     //ask for file
     printf("Plase enter file name\n");
     scanf("%s", &filename);
-    file = fopen(filename, "rb");
-    do {
+    //file = fopen(filename, "rb");
+    while (!strcmp(filename, "quit")){
+        file = fopen(filename, "wb");
+        if (file == NULL){
+            printf("Error in openninf file\n");
+            break;
+        }
         //loop over the file
         sender_index = 0;
         while(fread(encoded_msg, 1, 26, file) > 0){
             //apply hamming code
             hamming(decoded_msg, encoded_msg);
-            update_buffer(decoded_msg, socket, channel_addr);
+            update_buffer(encoded_msg, socket, channel_addr);
         }
         //send
         write_socket(socket, &channel_addr, SENDER_BUFFER, sender_index);
@@ -39,8 +44,8 @@ int main(int argc, char* argv[]) {
 	    fclose(file);
 
         //open new socket and connect
-	    memset(&channel_addr, 0, sizeof(channel_addr));
-	    set_address(&channel_addr, port, ip);
+	    //memset(&channel_addr, 0, sizeof(channel_addr));
+	    //set_address(&channel_addr, port, ip);
         SOCKET socket = create_socket();
 
         //ask for new filename (if "quit" - close the socket)
@@ -50,7 +55,7 @@ int main(int argc, char* argv[]) {
             file = fopen(filename, "rb");
         }
 
-    } while (!strcmp(filename, "quit")); 
+    }
 
     //cleanup
     closesocket(socket);
@@ -65,12 +70,12 @@ int print_output(){
     
 }
 
-void update_buffer(char decoded_msg[DECODED], SOCKET socket, socketaddr addr){
-    for (int i = 0; i < DECODED; i++){
-        SENDER_BUFFER[sender_index + i] = decoded_msg[i];
+void update_buffer(char encoded_msg[ENCODED], SOCKET socket, socketaddr addr){
+    for (int i = 0; i < ENCODED; i++){
+        SENDER_BUFFER[sender_index + i] = encoded_msg[i];
     }
-    sender_index += DECODED;
-    if (sender_index > MAX_LENGTH - DECODED){
+    sender_index += ENCODED;
+    if (sender_index > MAX_LENGTH - ENCODED){
         Sleep(50);
         write_socket(socket, &addr, SENDER_BUFFER, sender_index);
         sender_index = 0;

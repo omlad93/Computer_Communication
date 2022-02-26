@@ -208,6 +208,14 @@ int server_loop(SOCKET s, socketaddr* addr, str data, int size) {
             log_err("Message was %d Bits long");
             return len;
         } else {
+
+            /*log_err("enter file name:");
+            scanf_s("%s", user_buffer, MAX_LENGTH);
+            log_err(user_buffer);
+            if (strcmp(user_buffer, "quit")) {
+                log_err("Recognized 'quit': aborting connection.");
+                return FAIL;
+            }*/
             return FAIL;
         }
         // else {
