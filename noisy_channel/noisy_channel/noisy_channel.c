@@ -1,4 +1,8 @@
 #include "noisy_channel.h"
+
+/*
+    set noise with proper parameters according to user input
+*/
 void generate_noise(Noise_p noise, str noise_type, int a1, int a2) {
     int is_random = not(strcmp(noise_type, RANDOMIZE));
     int is_deterministic = not(strcmp(noise_type, DETERMINISTIC));
@@ -16,6 +20,10 @@ void generate_noise(Noise_p noise, str noise_type, int a1, int a2) {
     noise->flipped = 0;
 }
 
+/*
+    apply determinstic noise on transmitted data
+    Called by apply_noise(...)
+*/
 void apply_deterministic(Noise_p noise, str data, int size) {
     for (int i = 0; i < size; i++) {
         if (i == noise->n - 1) {
@@ -25,6 +33,10 @@ void apply_deterministic(Noise_p noise, str data, int size) {
     }
 }
 
+/*
+    apply randomize noise on transmitted data
+    Called by apply_noise(...)
+*/
 void apply_randomized(Noise_p noise, str data, int size) {
     int flipping;
     for (int i = 0; i < size; i++) {
@@ -34,6 +46,9 @@ void apply_randomized(Noise_p noise, str data, int size) {
     }
 }
 
+/*
+    apply noise on incoming data, according to noise model
+*/
 int apply_noise(Noise_p noise, str data, int size) {
     if (noise->type == RANDOMIZE) {
         apply_randomized(noise, data, size);
@@ -55,9 +70,12 @@ int main(int argc, char* argv[]) {
     assert_num((argc <= 4) & (argc > 1), "Noisy Channel Got Unexpected Numer og Arguments", argc);
     noise_type = argv[1];
     a1 = atoi(argv[2]);
-    if (argc == 4) { a2 = atoi(argv[3]); }
-    else { a2 = 0; }
-    //a2 = (argc == 3) ? atoi(argv[3]) : 0;
+    if (argc == 4) {
+        a2 = atoi(argv[3]);
+    } else {
+        a2 = 0;
+    }
+    // a2 = (argc == 3) ? atoi(argv[3]) : 0;
     Noise_p noise = (Noise_p)(calloc(1, sizeof(Noise)));
     generate_noise(noise, noise_type, a1, a2);
     fd_set fs;
