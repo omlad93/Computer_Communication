@@ -33,6 +33,11 @@
     "bit": "c",
     "*.tcc": "c",
     "cmath": "c",
-    "random": "c"
+    "random": "c",
+    "receiver.h": "c",
+    "string.h": "c",
+    "winsock2.h": "c",
+    "timeb.h": "c",
+    "types.h": "c"
   }
 }

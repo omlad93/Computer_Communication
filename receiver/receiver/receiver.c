@@ -1,26 +1,28 @@
+#pragma once
 #include "receiver.h"
 
 int main(int argc, char* argv[]) {
     FILE* file;
     char* ip = argv[1];
-	int port = atoi(argv[2]);
-	char* filename;
+	  int port = atoi(argv[2]);
+	  char* filename;
     char msg[MAX_LENGTH];
     int status = 0;
     int size;
     SOCKET socket;
-    //create a socket
+    // create a socket
     socketaddr channel_addr, receiver_addr;
     server_stats = (stats*)calloc(1, sizeof(stats));
     received_msg_size = 0;
-	memset(&channel_addr, 0, sizeof(channel_addr));
-	memset(&receiver_addr, 0, sizeof(receiver_addr));
-	set_address(&channel_addr, port, ip);
+    memset(&channel_addr, 0, sizeof(channel_addr));
+    memset(&receiver_addr, 0, sizeof(receiver_addr));
+    set_address(&channel_addr, port, ip);
     socket = create_socket();
-	bind_socket(socket, &receiver_addr);
-    //ask for file
+    bind_socket(socket, &receiver_addr);
+    // ask for file
     printf("Plase enter file name\n");
     scanf("%s", &filename);
+
     //file = fopen(filename, "wb");
     while (!strcmp(filename, "quit")){
         file = fopen(filename, "wb");
@@ -33,9 +35,9 @@ int main(int argc, char* argv[]) {
             status = server_loop(socket, &channel_addr, RECEIVER_BUF, MAX_LENGTH); 
             if (status == -1){
                 break;
-            }
-            else{
+            } else {
                 received_msg_size += status;
+
 
                 //encode hamming message
                 fix_hamming_message(msg, received_msg_size);
@@ -43,33 +45,35 @@ int main(int argc, char* argv[]) {
                 //write the received message to file
                 update_receiver_file(file, msg);
 
+                // write the received message to file
             }
-
         }
 
         //sends a respond 
         respond_to_sender(socket, &channel_addr);
 
-	    closesocket(socket);
-	    fclose(file);
+        closesocket(socket);
+        fclose(file);
 
-        //print to file
+        // print to file
         print_receiver_file();
 
-        //open new socket and connect
-	    memset(&channel_addr, 0, sizeof(channel_addr));
-	    memset(&receiver_addr, 0, sizeof(receiver_addr));
-	    set_address(&channel_addr, port, ip);
+        // open new socket and connect
+        memset(&channel_addr, 0, sizeof(channel_addr));
+        memset(&receiver_addr, 0, sizeof(receiver_addr));
+        set_address(&channel_addr, port, ip);
         socket = create_socket();
-	    bind_socket(socket, &receiver_addr);
+        bind_socket(socket, &receiver_addr);
 
-        //ask for new filename (if "quit" - close the socket)
+        // ask for new filename (if "quit" - close the socket)
         printf("Plase enter file name\n");
         scanf("%s", &filename);
+
     } 
 
-    //cleanup
+    // cleanup
     closesocket(socket);
+
 	fclose(file);
     
 
