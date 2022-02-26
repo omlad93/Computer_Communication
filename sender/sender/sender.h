@@ -8,13 +8,15 @@
 #include <sys/timeb.h>
 #include <sys/types.h>
 #include <winsock2.h>
-#include "utils/utils.h"
+#include "../../utils/utils/utils.h"
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
+
+
 void hamming(char* decoded_msg, char* encoded_msg);
 
-void update_buffer(char decoded_msg[DECODED], SOCKET socket, struct sockaddr_in* addr);
+int print_output();
 
-void print_output();
+void update_buffer(char decoded_msg[DECODED], SOCKET socket, socketaddr addr);

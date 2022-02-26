@@ -27,6 +27,12 @@
 typedef struct sockaddr_in socketaddr;
 typedef char* str;
 
+char SENDER_BUFFER[MAX_LENGTH];
+char RECEIVER_BUFFER[MAX_LENGTH];
+int sender_index;
+int receiver_index;
+int received_msg_size;
+
 /*
     print message to stderr and create newline
 */
