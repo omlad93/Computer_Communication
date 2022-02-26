@@ -12,6 +12,8 @@
 #define not(x) (!x)
 #define xor (a, b)(a ^ b)
 #define from_binary(s) ((int)strtol(s, NULL, 2))
+#define SENDER -1
+#define RECEIVER -2
 #define DECODED 26
 #define ENCODED 31
 #define PARITY_BITS 5
@@ -29,6 +31,7 @@ typedef char* str;
 
 char SENDER_BUFFER[MAX_LENGTH];
 char RECEIVER_BUFFER[MAX_LENGTH];
+int first_init_sd;
 int sender_index;
 int receiver_index;
 int received_msg_size;
@@ -64,7 +67,27 @@ inline void assert_num(int condition, str message, int err_idx) {
     }
 }
 
-// Indexing is considering MSB as 0
+typedef struct sharedData {
+    int receiver_port;
+    int receiver_ready;
+    // str receiver_ip;
+    int sender_port;
+    int sender_ready;
+    // str sender_ip;
+    int open_channel;
+} SharedData;
+typedef SharedData* SDP;
+
+SharedData sd;
+// SDP sdp = &sd;
+// memset(sdp, 0, sizeof(dp));
+
+/*
+    Updated Ports & IPs after socket creation
+    So Channel will have information
+*/
+void update_sharedata(int source, int port, str ip);
+
 
 // Bits Utility Functions
 /*

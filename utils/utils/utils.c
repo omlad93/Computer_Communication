@@ -1,5 +1,30 @@
 #include "utils.h"
 
+/*
+    Updated Ports & IPs after socket creation
+    So Channel will have information
+*/
+void update_sharedata(int source, int port, str ip) {
+    SDP sdp = &sd;
+    if (first_init_sd) {
+        first_init_sd = TRUE;
+        memset(sdp, 0, sizeof(sd));
+    }
+    str m = (source == RECEIVER) ? "Receiver" : "Sender";
+    if (source == RECEIVER) {
+        sdp->receiver_port = port;
+        sdp->receiver_ready = TRUE;
+        // sdp->receiver_ip = ip;
+    } else {
+        sdp->sender_port = port;
+        sdp->sender_ready = TRUE;
+        // sdp->sender_ip = ip;
+    }
+    assert(ip != NULL, "IP IS NULL");
+    printf("%s updated Shared Data\n", m);
+    sdp->open_channel = sdp->sender_ready & sdp->receiver_ready;
+}
+
 // Bits Utility Functions
 
 /*
@@ -179,17 +204,20 @@ int server_loop(SOCKET s, socketaddr* addr, str data, int size) {
         assert(status >= 0, "Selection Failed [Server]");
         if (FD_ISSET(s, &fs)) {
             log_err("Reading Message From Sender");
-            len = read_socket(s, addr, data, size);
+            len += read_socket(s, addr, data, size);
             log_err("Message was %d Bits long");
             return len;
         } else {
-            log_err("enter file name:");
-            scanf_s("%s", user_buffer, MAX_LENGTH);
-            log_err(user_buffer);
-            if (strcmp(user_buffer, "quit")) {
-                log_err("Recognized 'quit': aborting connection.");
-                return FAIL;
-            }
+            return FAIL;
         }
+        // else {
+        //     log_err("enter file name:");
+        //     scanf_s("%s", user_buffer, MAX_LENGTH);
+        //     log_err(user_buffer);
+        //     if (strcmp(user_buffer, "quit")) {
+        //         log_err("Recognized 'quit': aborting connection.");
+        //         return FAIL;
+        //     }
+        // }
     }
 }

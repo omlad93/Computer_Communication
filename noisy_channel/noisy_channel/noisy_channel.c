@@ -50,7 +50,7 @@ void apply_randomized(Noise_p noise, str data, int size) {
     apply noise on incoming data, according to noise model
 */
 int apply_noise(Noise_p noise, str data, int size) {
-    if (noise->type == RANDOMIZE) {
+    if (not(strcmp(noise->type, RANDOMIZE))) {
         apply_randomized(noise, data, size);
     } else {
         apply_deterministic(noise, data, size);
@@ -64,9 +64,9 @@ int main(int argc, char* argv[]) {
      * Who supplies self port?
      *
      */
-    int self_port, server_port;
-    int a1, a2, selection, size, write_size;
-    str noise_type, server_ip, sender_ip;
+    int a1, a2, selection, size=0, write_size=0;
+    int counter = 0;
+    str noise_type;
     assert_num((argc <= 4) & (argc > 1), "Noisy Channel Got Unexpected Numer og Arguments", argc);
     noise_type = argv[1];
     a1 = atoi(argv[2]);
@@ -77,24 +77,30 @@ int main(int argc, char* argv[]) {
     }
     // a2 = (argc == 3) ? atoi(argv[3]) : 0;
     Noise_p noise = (Noise_p)(calloc(1, sizeof(Noise)));
+    SDP sdp = &sd;
     generate_noise(noise, noise_type, a1, a2);
     fd_set fs;
-    socketaddr self_sa, sender_sa, server_sa;
+    socketaddr receiver_sa, sender_sa;
 
     // INIT
-    // WHERE DOES THOSE NUMBER SHOULD COME FROM
-    self_port = 4693;
-    server_port = 2409;
-    server_ip = NULL;
 
     // Channel <-> Sender
+    while (not(sdp->open_channel)) {
+        //v ("Counter:%d",counter);
+        if (counter == 1) {
+            update_sharedata(RECEIVER, 4693, "example_ip");
+        }else if(counter == 3) {
+            update_sharedata(SENDER, 2409, "example_ip");
+        }
+        counter++;
+    }
     int sender_socket = create_socket();
-    set_address(&self_sa, self_port, NULL);
-    bind_socket(sender_socket, &self_sa);
+    set_address(&sender_sa, sdp->sender_port, NULL);
+    bind_socket(sender_socket, &sender_sa);
 
     // Channel <-> Server
     int server_socket = create_socket();
-    set_address(&server_sa, server_port, server_ip);
+    set_address(&receiver_sa, sdp->receiver_port, NULL);
     FD_ZERO(&fs);
     while (TRUE) {
         FD_SET(sender_socket, &fs);
@@ -107,15 +113,15 @@ int main(int argc, char* argv[]) {
         } else {
             size = read_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, MAX_LENGTH);
             FLIPPED_COUNTER += apply_noise(noise, CHANNEL_BUFFER, size);
-            write_size = write_socket(server_socket, CHANNEL_BUFFER, size, &server_sa);
+            write_size = write_socket(server_socket, &receiver_sa, CHANNEL_BUFFER, size);
             TRANSFER_COUNTER += size;
         }
     }
-    read_socket(server_socket, &server_sa, CHANNEL_BUFFER, MAX_LENGTH);  // read the message from the server
+    read_socket(server_socket, &receiver_sa, CHANNEL_BUFFER, MAX_LENGTH);  // read the message from the server
     write_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, size);
     closesocket(server_socket);
     closesocket(sender_socket);
-    sender_ip = inet_ntoa((&sender_sa)->sin_addr);
+    printf("%d, %d", size, write_size);
     // print_channel_output(server_ip, sender_ip);
     return 0;
 }
