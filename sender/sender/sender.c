@@ -9,28 +9,29 @@ int main(int argc, char* argv[]) {
     char *decoded_msg[DECODED];
     char *encoded_msg[ENCODED];
     //char *total_encoded_msg[];
-    do {
-        //create a socket
-        struct sockaddr_in channel_addr;
-	    memset(&channel_addr, 0, sizeof(channel_addr));
-	    set_address(&channel_addr, port, ip);
-        SOCKET socket = create_socket();
-        //ask for file
-        printf("Plase enter file name\n");
-        scanf("%s", &filename);
-        file = fopen(filename, "rb");
 
+    //create a socket
+    socketaddr channel_addr;
+	memset(&channel_addr, 0, sizeof(channel_addr));
+	set_address(&channel_addr, port, ip);
+    SOCKET socket = create_socket();
+    //ask for file
+    printf("Plase enter file name\n");
+    scanf("%s", &filename);
+    file = fopen(filename, "rb");
+    do {
         //loop over the file
-        while(fread(encoded_msg, 1, 11, file) > 0){
+        sender_index = 0;
+        while(fread(encoded_msg, 1, 26, file) > 0){
             //apply hamming code
             hamming(decoded_msg, encoded_msg);
-            update_buffer(decoded_msg, socket, &channel_addr);
+            update_buffer(decoded_msg, socket, channel_addr);
         }
         //send
-        //write_socket(socket, &channel_addr, send_buf_cur_ind[0], &channel_addr);
+        write_socket(socket, &channel_addr, SENDER_BUFFER, sender_index);
 
         //wait for an answer
-        //socket = read_socket(socket, &channel_addr, REC_BUF, LARGE_NUM);
+        socket =  read_socket(socket,  &channel_addr, SENDER_BUFFER, MAX_LENGTH);
 
         //close socket and report number of bytes that were witten and read
         print_output();
@@ -49,9 +50,30 @@ int main(int argc, char* argv[]) {
             file = fopen(filename, "rb");
         }
 
-    } while (!strcmp(filename, "quit"));   
+    } while (!strcmp(filename, "quit")); 
+
+    //cleanup
+    closesocket(socket);
+	fclose(file);  
 }
 
 void hamming(char* decoded_msg, char* encoded_msg){
 
+}
+
+int print_output(){
+    
+}
+
+void update_buffer(char decoded_msg[DECODED], SOCKET socket, socketaddr addr){
+    for (int i = 0; i < DECODED; i++){
+        SENDER_BUFFER[sender_index + i] = decoded_msg[i];
+    }
+    sender_index += DECODED;
+    if (sender_index > MAX_LENGTH - DECODED){
+        Sleep(50);
+        write_socket(socket, &addr, SENDER_BUFFER, sender_index);
+        sender_index = 0;
+    }
+ 
 }
