@@ -6,19 +6,20 @@
 */
 void update_sharedata(int source, int port, str ip) {
     SDP sdp = &sd;
-    if (first_init_sd) {
-        first_init_sd = TRUE;
+    if (first_init) {
+        first_init = FALSE;
         memset(sdp, 0, sizeof(sd));
     }
     str m = (source == RECEIVER) ? "Receiver" : "Sender";
     if (source == RECEIVER) {
         sdp->receiver_port = port;
         sdp->receiver_ready = TRUE;
+        sprintf(sdp->receiver_ip,ip);
         // sdp->receiver_ip = ip;
     } else {
         sdp->sender_port = port;
         sdp->sender_ready = TRUE;
-        // sdp->sender_ip = ip;
+        sprintf(sdp->sender_ip,ip);
     }
     assert(ip != NULL, "IP IS NULL");
     printf("%s updated Shared Data\n", m);
@@ -107,7 +108,9 @@ void parity_bits(char data[DECODED], char parity_bits[PARITY_BITS]) {
     parity_bits[4] = parity(numeric_data, P16_MASK);
 }
 
-void attach(str message, char c[2], int mod, int size, int idx);
+void attach(str message, char c[2], int mod, int size, int idx){
+
+}
 
 /*
     Return the value of a char with fillped bit in idx
@@ -134,10 +137,10 @@ char flip(char c, int idx) {
 */
 SOCKET create_socket() {
     SOCKET s;
-    WORD version_req = MAKEWORD(1, 1);
-    WSADATA data;
-    WSAStartup(version_req, &data);
-    s = socket(AF_INET, SOCK_DGRAM, 0);
+    WSADATA wsa_data;
+    int su = WSAStartup(MAKEWORD(2, 2), &wsa_data);
+    assert(su==NO_ERROR, "startup error");
+    s = socket(AF_INET, SOCK_STREAM, 0);
     assert(s != INVALID_SOCKET, "Invalid Socket");
     return s;
 }
@@ -160,11 +163,8 @@ void set_address(socketaddr* addr, int port, str ip) {
     asserting that binding succeeded
 */
 int bind_socket(SOCKET s, socketaddr* addr) {
-    WORD version_req = MAKEWORD(1, 1);
-    WSADATA wsa_data;
-    WSAStartup(version_req, &wsa_data);
     int bind_condition = ((bind(s, (struct sockaddr*)addr, sizeof(*addr))) > 0);
-    assert(bind_condition, "Binding Failed");
+    assert(bind_condition!=SOCKET_ERROR, "Binding Failed");
     return TRUE;
 }
 
@@ -176,12 +176,8 @@ int bind_socket(SOCKET s, socketaddr* addr) {
     asserting no error occurred
 */
 int read_socket(SOCKET s, socketaddr* addr, str data, int size) {
-    int res;
-    int l = sizeof(addr);
-    WORD version_req = MAKEWORD(1, 1);
-    WSADATA wsa_data;
-    WSAStartup(version_req, &wsa_data);
-    res = recvfrom(s, data, size, 0, (struct sockaddr*)addr, &l);
+    // do while res > 0 
+    int res = recvfrom(s, data, size, 0, (struct sockaddr*)addr, &size);
     assert_num(res >= 0, "Read Message Failed", WSAGetLastError());
     return res;
 }
@@ -194,10 +190,7 @@ int read_socket(SOCKET s, socketaddr* addr, str data, int size) {
     asserting no error occurred
 */
 int write_socket(SOCKET s, socketaddr* addr, str data, int size) {
-    WSADATA wsa_data;
-    WORD version_req = MAKEWORD(1, 1);
-    WSAStartup(version_req, &wsa_data);
-    addr->sin_family = AF_INET;
+    // finish when res == size
     int res = sendto(s, data, size, 0, (struct sockaddr*)addr, sizeof(struct sockaddr));
     assert_num(res >= 0, "Write Message Failed", WSAGetLastError());
     return res;

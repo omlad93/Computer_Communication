@@ -12,19 +12,22 @@ int main(int argc, char* argv[]) {
 
     //create a socket
     socketaddr channel_addr;
+    SOCKET socket = create_socket();
 	memset(&channel_addr, 0, sizeof(channel_addr));
 	set_address(&channel_addr, port, ip);
-    SOCKET socket = create_socket();
+    assert(connect(socket,&channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied");
     //ask for file
     printf("Plase enter file name\n");
     scanf("%s", &filename);
-    //file = fopen(filename, "rb");
+    //file = fopen(filename, "rb"); 
+
     while (!strcmp(filename, "quit")){
         file = fopen(filename, "rb");
         if (file == NULL){
             printf("Error in openninf file\n");
             break;
         }
+
         //loop over the file
         sender_index = 0;
         while(fread(encoded_msg, 1, 26, file) > 0){
@@ -41,25 +44,23 @@ int main(int argc, char* argv[]) {
         //close socket and report number of bytes that were witten and read
         print_output();
 	    closesocket(socket);
+        WSACleanup();
 	    fclose(file);
 
         //open new socket and connect
 	    //memset(&channel_addr, 0, sizeof(channel_addr));
 	    //set_address(&channel_addr, port, ip);
-        SOCKET socket = create_socket();
+        socket = create_socket();
+        assert(connect(socket,&channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied");
 
         //ask for new filename (if "quit" - close the socket)
         printf("Plase enter file name\n");
         scanf("%s", &filename);
-        if(!strcmp(filename, "quit")){
-            file = fopen(filename, "rb");
-        }
-
     }
-
     //cleanup
+    shutdown(socket,SD_BOTH);
     closesocket(socket);
-	fclose(file);  
+    WSACleanup();
 }
 
 /* applaies hamming code to 26 bits message
@@ -134,7 +135,7 @@ void update_buffer(char encoded_msg[ENCODED], SOCKET socket, socketaddr addr){
     }
     sender_index += ENCODED;
     if (sender_index > MAX_LENGTH - ENCODED){
-        Sleep(50);
+        Sleep(50); // ???
         write_socket(socket, &addr, SENDER_BUFFER, sender_index);
         sender_index = 0;
     }

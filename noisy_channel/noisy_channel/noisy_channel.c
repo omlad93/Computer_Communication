@@ -77,50 +77,57 @@ int main(int argc, char* argv[]) {
     }
     // a2 = (argc == 3) ? atoi(argv[3]) : 0;
     Noise_p noise = (Noise_p)(calloc(1, sizeof(Noise)));
-    SDP sdp = &sd;
     generate_noise(noise, noise_type, a1, a2);
-    fd_set fs;
+    SDP sdp = &sd;
+    fd_set sender_fds, receiver_fds;
     socketaddr receiver_sa, sender_sa;
 
     // INIT
 
     // Channel <-> Sender
     while (not(sdp->open_channel)) {
-        //v ("Counter:%d",counter);
-        if (counter == 1) {
-            update_sharedata(RECEIVER, 4693, "example_ip");
-        }else if(counter == 3) {
-            update_sharedata(SENDER, 2409, "example_ip");
-        }
-        counter++;
+        sleep(50);
     }
-    int sender_socket = create_socket();
-    set_address(&sender_sa, sdp->sender_port, NULL);
+    SOCKET sender_socket = create_socket();
+    SOCKET receiver_socket = create_socket();
+    set_address(&sender_sa, sdp->sender_port, sdp->sender_ip);
+    set_address(&receiver_sa, sdp->receiver_port, sdp->receiver_ip);
     bind_socket(sender_socket, &sender_sa);
+    bind_socket(receiver_socket, &receiver_sa);
+    listen(sender_socket,0);
+    listen(receiver_socket,0);
 
     // Channel <-> Server
-    int server_socket = create_socket();
-    set_address(&receiver_sa, sdp->receiver_port, NULL);
-    FD_ZERO(&fs);
+    
     while (TRUE) {
-        FD_SET(sender_socket, &fs);
-        FD_SET(server_socket, &fs);
-        selection = select(2, &fs, NULL, NULL, NULL);
+        accept(sender_socket,&sender_sa,sizeof(sender_sa));
+        accept(receiver_socket,&receiver_sa,sizeof(receiver_sa));
+        FD_ZERO(&sender_fds);
+        FD_ZERO(&receiver_fds);
+        FD_SET(sender_socket, &sender_fds);
+        FD_SET(receiver_socket, &receiver_fds);
+        selection = select(2, &sender_fds, &receiver_fds, NULL, NULL);
         assert(selection >= 0, "Selection Failed [Channel]");
-        if (FD_ISSET(server_socket, &fs)) {
-            log_err("Channel Finished Reading From Socket");
-            break;  // DONE
-        } else {
-            size = read_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, MAX_LENGTH);
-            FLIPPED_COUNTER += apply_noise(noise, CHANNEL_BUFFER, size);
-            write_size = write_socket(server_socket, &receiver_sa, CHANNEL_BUFFER, size);
-            TRANSFER_COUNTER += size;
+        // if (FD_ISSET(server_socket, &fs)) {
+        //     log_err("Channel Finished Reading From Socket");
+        //     break;  // DONE
+        
+        size = read_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, MAX_LENGTH);
+        // FLIPPED_COUNTER += apply_noise(noise, CHANNEL_BUFFER, size);
+        write_size = write_socket(receiver_socket, &receiver_sa, CHANNEL_BUFFER, size);
+
+        size = read_socket(receiver_socket, &receiver_sa, CHANNEL_BUFFER, MAX_LENGTH);  // read the message from the server
+        write_size = write_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, size);
+        if (not(WSAEventSelect(sender_socket,WSACreateEvent(),FD_CLOSE) ||  WSAEventSelect(receiver_socket,WSACreateEvent(),FD_CLOSE))){
+            break;
         }
+        // break if shutdown()
+        
     }
-    read_socket(server_socket, &receiver_sa, CHANNEL_BUFFER, MAX_LENGTH);  // read the message from the server
-    write_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, size);
-    closesocket(server_socket);
+    free(noise);
+    closesocket(receiver_socket);
     closesocket(sender_socket);
+    WSACleanup();
     printf("%d, %d", size, write_size);
     // print_channel_output(server_ip, sender_ip);
     return 0;

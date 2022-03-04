@@ -66,14 +66,14 @@ inline void assert_num(int condition, str message, int err_idx) {
 typedef struct sharedData {
     int receiver_port;
     int receiver_ready;
-    // str receiver_ip;
+    char receiver_ip[15];
     int sender_port;
     int sender_ready;
-    // str sender_ip;
+    char sender_ip[15];
     int open_channel;
 } SharedData;
 typedef SharedData* SDP;
-
+int first_init = TRUE;
 SharedData sd;
 // SDP sdp = &sd;
 // memset(sdp, 0, sizeof(dp));
