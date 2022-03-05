@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
      * Who supplies self port?
      *
      */
-    int a1, a2, selection, size=0, write_size=0;
+    int a1, a2, selection, size = 0, write_size = 0;
     int counter = 0;
     str noise_type;
     assert_num((argc <= 4) & (argc > 1), "Noisy Channel Got Unexpected Numer og Arguments", argc);
@@ -94,35 +94,40 @@ int main(int argc, char* argv[]) {
     set_address(&receiver_sa, sdp->receiver_port, sdp->receiver_ip);
     bind_socket(sender_socket, &sender_sa);
     bind_socket(receiver_socket, &receiver_sa);
-    listen(sender_socket,0);
-    listen(receiver_socket,0);
+    listen(sender_socket, 0);
+    listen(receiver_socket, 0);
 
     // Channel <-> Server
-    
+
     while (TRUE) {
-        accept(sender_socket,&sender_sa,sizeof(sender_sa));
-        accept(receiver_socket,&receiver_sa,sizeof(receiver_sa));
+        accept(sender_socket, &sender_sa, sizeof(sender_sa));
+        accept(receiver_socket, &receiver_sa, sizeof(receiver_sa));
         FD_ZERO(&sender_fds);
         FD_ZERO(&receiver_fds);
         FD_SET(sender_socket, &sender_fds);
         FD_SET(receiver_socket, &receiver_fds);
         selection = select(2, &sender_fds, &receiver_fds, NULL, NULL);
-        assert(selection >= 0, "Selection Failed [Channel]");
-        // if (FD_ISSET(server_socket, &fs)) {
-        //     log_err("Channel Finished Reading From Socket");
-        //     break;  // DONE
-        
-        size = read_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, MAX_LENGTH);
-        // FLIPPED_COUNTER += apply_noise(noise, CHANNEL_BUFFER, size);
-        write_size = write_socket(receiver_socket, &receiver_sa, CHANNEL_BUFFER, size);
+        if (selection == SOCKET_ERROR) {
+            if (WSAGetLastError() == WSANOTINITIALISED) {
+                // was not initialized == closed ??
+                // if so simply break
+                break;
+            }
+            assert_num(FALSE, "Channel Socket Selection", WSAGetLastError())
 
-        size = read_socket(receiver_socket, &receiver_sa, CHANNEL_BUFFER, MAX_LENGTH);  // read the message from the server
-        write_size = write_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, size);
-        if (not(WSAEventSelect(sender_socket,WSACreateEvent(),FD_CLOSE) ||  WSAEventSelect(receiver_socket,WSACreateEvent(),FD_CLOSE))){
-            break;
+        } else {
+            assert(selection >= 0, "Selection Failed [Channel]");
+            // if (FD_ISSET(server_socket, &fs)) {
+            //     log_err("Channel Finished Reading From Socket");
+            //     break;  // DONE
+
+            size = read_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, MAX_LENGTH);
+            // FLIPPED_COUNTER += apply_noise(noise, CHANNEL_BUFFER, size);
+            write_size = write_socket(receiver_socket, &receiver_sa, CHANNEL_BUFFER, size);
+
+            size = read_socket(receiver_socket, &receiver_sa, CHANNEL_BUFFER, MAX_LENGTH);  // read the message from the server
+            write_size = write_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, size);
         }
-        // break if shutdown()
-        
     }
     free(noise);
     closesocket(receiver_socket);

@@ -14,12 +14,12 @@ void update_sharedata(int source, int port, str ip) {
     if (source == RECEIVER) {
         sdp->receiver_port = port;
         sdp->receiver_ready = TRUE;
-        sprintf(sdp->receiver_ip,ip);
+        sprintf(sdp->receiver_ip, ip);
         // sdp->receiver_ip = ip;
     } else {
         sdp->sender_port = port;
         sdp->sender_ready = TRUE;
-        sprintf(sdp->sender_ip,ip);
+        sprintf(sdp->sender_ip, ip);
     }
     assert(ip != NULL, "IP IS NULL");
     printf("%s updated Shared Data\n", m);
@@ -27,25 +27,23 @@ void update_sharedata(int source, int port, str ip) {
 }
 
 /* calculates the hamming parity bit in pos - 1 */
-int calc_hamming_bit(int pos, char encoded_msg[ENCODED]){
-    int i,j,cnt;
-    cnt  = 0;
+int calc_hamming_bit(int pos, char encoded_msg[ENCODED]) {
+    int i, j, cnt;
+    cnt = 0;
     i = pos - 1;
-    while(i < 31){
-        for(j = i; j < (i + pos); j++){
-            if(encoded_msg[j] == 1){
+    while (i < 31) {
+        for (j = i; j < (i + pos); j++) {
+            if (encoded_msg[j] == 1) {
                 cnt++;
             }
-            i = i+2*pos;
+            i = i + 2 * pos;
         }
-        if(cnt % 2 == 0){
+        if (cnt % 2 == 0) {
             return 0;
-        }
-        else{
+        } else {
             return 1;
         }
     }
-
 }
 
 // Bits Utility Functions
@@ -65,10 +63,10 @@ int parity(int val, int mask) {
 }
 
 /*extarcts only the data bits from the encoded message*/
-void get_msg_data_bits(char encoded_data[ENCODED], char sripped_data[DECODED]){
+void get_msg_data_bits(char encoded_data[ENCODED], char sripped_data[DECODED]) {
     int j = 0;
-    for(int i = 0; i < encoded_data; i++){
-        if(not(is_check_bit_pos(i))){
+    for (int i = 0; i < encoded_data; i++) {
+        if (not(is_check_bit_pos(i))) {
             sripped_data[j] = encoded_data[i];
             j++;
         }
@@ -119,7 +117,6 @@ void parity_bits(char data[DECODED], char parity_bits[PARITY_BITS]) {
     parity_bits[4] = parity(numeric_data, P16_MASK);
 }
 
-
 /*
     Return the value of a char with fillped bit in idx
 */
@@ -147,7 +144,7 @@ SOCKET create_socket() {
     SOCKET s;
     WSADATA wsa_data;
     int su = WSAStartup(MAKEWORD(2, 2), &wsa_data);
-    assert(su==NO_ERROR, "startup error");
+    assert(su == NO_ERROR, "startup error");
     s = socket(AF_INET, SOCK_STREAM, 0);
     assert(s != INVALID_SOCKET, "Invalid Socket");
     return s;
@@ -172,7 +169,7 @@ void set_address(socketaddr* addr, int port, str ip) {
 */
 int bind_socket(SOCKET s, socketaddr* addr) {
     int bind_condition = ((bind(s, (struct sockaddr*)addr, sizeof(*addr))) > 0);
-    assert(bind_condition!=SOCKET_ERROR, "Binding Failed");
+    assert(bind_condition != SOCKET_ERROR, "Binding Failed");
     return TRUE;
 }
 
@@ -184,9 +181,15 @@ int bind_socket(SOCKET s, socketaddr* addr) {
     asserting no error occurred
 */
 int read_socket(SOCKET s, socketaddr* addr, str data, int size) {
-    // do while res > 0 
-    int res = recvfrom(s, data, size, 0, (struct sockaddr*)addr, &size);
-    assert_num(res >= 0, "Read Message Failed", WSAGetLastError());
+    // do while res > 0
+    int res;
+    char message[45];
+    do {
+        res += recv(s, data, size, 0);
+        assert_num(res >= 0, "Read Message Failed", WSAGetLastError());
+    } while (res > 0);
+    sprinf_s(message, "read_socket(): Read %d / %d Bytes", res, size);
+    log_err(message);
     return res;
 }
 
@@ -199,7 +202,14 @@ int read_socket(SOCKET s, socketaddr* addr, str data, int size) {
 */
 int write_socket(SOCKET s, socketaddr* addr, str data, int size) {
     // finish when res == size
-    int res = sendto(s, data, size, 0, (struct sockaddr*)addr, sizeof(struct sockaddr));
-    assert_num(res >= 0, "Write Message Failed", WSAGetLastError());
+    int res;
+    char message[45];
+    do {
+        res += send(s, data, size, 0);
+        assert_num(res >= 0, "Write Message Failed", WSAGetLastError());
+    } while (res < size);
+    sprinf_s(message, "read_socket(): Read %d / %d Bytes", res, size);
+    assert_num(res == size, "write_socket wrote too much bytes", res);
+    log_err(message);
     return res;
 }
