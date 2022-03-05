@@ -64,6 +64,17 @@ int parity(int val, int mask) {
     return (y & 1) ? TRUE : FALSE;
 }
 
+/*extarcts only the data bits from the encoded message*/
+void get_msg_data_bits(char encoded_data[ENCODED], char sripped_data[DECODED]){
+    int j = 0;
+    for(int i = 0; i < encoded_data; i++){
+        if(not(is_check_bit_pos(i))){
+            sripped_data[j] = encoded_data[i];
+            j++;
+        }
+    }
+}
+
 /*
     A function that return char[idx]
     ret_val ∈ {'0','1'}
@@ -108,9 +119,6 @@ void parity_bits(char data[DECODED], char parity_bits[PARITY_BITS]) {
     parity_bits[4] = parity(numeric_data, P16_MASK);
 }
 
-void attach(str message, char c[2], int mod, int size, int idx){
-
-}
 
 /*
     Return the value of a char with fillped bit in idx
@@ -194,53 +202,4 @@ int write_socket(SOCKET s, socketaddr* addr, str data, int size) {
     int res = sendto(s, data, size, 0, (struct sockaddr*)addr, sizeof(struct sockaddr));
     assert_num(res >= 0, "Write Message Failed", WSAGetLastError());
     return res;
-}
-
-/*
-    A loop of waiting for information on socket
-    when there is information read it to `data` variable
-    return value is length of data read
-    can be called again for new file
-    if called again can be terminated nicely using `quit` as filename
-    Can be moved to server.c !
-*/
-int server_loop(SOCKET s, socketaddr* addr, str data, int size) {
-    int status;
-    char user_buffer[MAX_LENGTH] = {0};
-    fd_set fs;
-    int len = 0;
-    struct timeval time_val;
-    time_val.tv_sec = 0;
-    time_val.tv_usec = 100;
-    while (TRUE) {
-        FD_ZERO(&fs);
-        FD_SET(s, &fs);
-        status = select(1, &fs, NULL, NULL, &time_val);
-        assert(status >= 0, "Selection Failed [Server]");
-        if (FD_ISSET(s, &fs)) {
-            log_err("Reading Message From Sender");
-            len += read_socket(s, addr, data, size);
-            log_err("Message was %d Bits long");
-            return len;
-        } else {
-
-            /*log_err("enter file name:");
-            scanf_s("%s", user_buffer, MAX_LENGTH);
-            log_err(user_buffer);
-            if (strcmp(user_buffer, "quit")) {
-                log_err("Recognized 'quit': aborting connection.");
-                return FAIL;
-            }*/
-            return FAIL;
-        }
-        // else {
-        //     log_err("enter file name:");
-        //     scanf_s("%s", user_buffer, MAX_LENGTH);
-        //     log_err(user_buffer);
-        //     if (strcmp(user_buffer, "quit")) {
-        //         log_err("Recognized 'quit': aborting connection.");
-        //         return FAIL;
-        //     }
-        // }
-    }
 }

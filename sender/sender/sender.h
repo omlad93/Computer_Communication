@@ -15,7 +15,7 @@
 
 char SENDER_BUFFER[MAX_LENGTH];
 //char RECEIVER_BUFFER[MAX_LENGTH];
-int sender_index;
+int buff_current_size;
 //int receiver_index;
 
 

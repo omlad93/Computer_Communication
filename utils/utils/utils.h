@@ -12,6 +12,7 @@
 #define not(x) (!x)
 #define xor (a, b)(a ^ b)
 #define from_binary(s) ((int)strtol(s, NULL, 2))
+#define is_check_bit_pos(i)(i == 1 || i == 2 || i == 4 || i == 8 || i == 16)
 #define SENDER -1
 #define RECEIVER -2
 #define DECODED 26
@@ -25,6 +26,7 @@
 #define P4_MASK from_binary("0001111000011110000111100001111")
 #define P8_MASK from_binary("0000000111111110000000011111111")
 #define P16_MASK from_binary("0000000000000001111111111111111")
+
 
 typedef struct sockaddr_in socketaddr;
 typedef char* str;
@@ -92,6 +94,11 @@ int calc_hamming_bit(int pos, char encoded_msg[ENCODED]);
     Used for computing parity bits
 */
 int parity(int val, int mask);
+
+/*
+    Extarcts only the data bits from the encoded message
+*/
+void get_msg_data_bits(char encoded_data[ENCODED], char sripped_data[DECODED]);
 
 /*
     A function that return char[idx]

@@ -15,6 +15,7 @@ int main(int argc, char* argv[]) {
     SOCKET socket = create_socket();
 	memset(&channel_addr, 0, sizeof(channel_addr));
 	set_address(&channel_addr, port, ip);
+    update_sharedata(SENDER, port, ip);
     assert(connect(socket,&channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied");
     //ask for file
     printf("Plase enter file name\n");
@@ -29,14 +30,14 @@ int main(int argc, char* argv[]) {
         }
 
         //loop over the file
-        sender_index = 0;
+        buff_current_size = 0;
         while(fread(encoded_msg, 1, 26, file) > 0){
             //apply hamming code
             hamming(decoded_msg, encoded_msg);
             update_buffer(encoded_msg, socket, channel_addr);
         }
         //send
-        write_socket(socket, &channel_addr, SENDER_BUFFER, sender_index);
+        write_socket(socket, &channel_addr, SENDER_BUFFER, buff_current_size);
 
         //wait for an answer
         socket =  read_socket(socket,  &channel_addr, SENDER_BUFFER, MAX_LENGTH);
@@ -61,44 +62,14 @@ int main(int argc, char* argv[]) {
     shutdown(socket,SD_BOTH);
     closesocket(socket);
     WSACleanup();
+    // print output ???
+    return 0;
 }
+
 
 /* applaies hamming code to 26 bits message
     returns 31 bits message*/
 /*void hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]){
-    char parity[PARITY_BITS];
-    parity_bits(decoded_msg, parity);
-    int j = 0;
-    for(int i = 0; i < ENCODED; i++){
-        switch (i){
-            case 1:
-                encoded_msg[i] = parity[0];
-                break;
-            case 2:
-                encoded_msg[i] = parity[1];
-                break;
-            case 4:
-                encoded_msg[i] = parity[2];
-                break;
-            case 8:
-                encoded_msg[i] = parity[3];
-                break;
-            case 16:
-                encoded_msg[i] = parity[4];
-                break;
-            default:
-                encoded_msg[i] = decoded_msg[j];
-                j++;
-                break;
-        }
-    }
-
-}*/
-
-
-/* applaies hamming code to 26 bits message
-    returns 31 bits message*/
-void hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]){
     int j,k;
     j = 0;
     k = 0; 
@@ -122,22 +93,54 @@ void hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]){
         encoded_msg[pos - 1] = hamming_bit;
     }
 
+}*/
+
+/* applaies hamming code to 26 bits message
+    returns 31 bits message*/
+void hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]){
+    char check_bits[PARITY_BITS]; 
+    parity_bits(decoded_msg[DECODED],check_bits[PARITY_BITS]);
+    int j = 0;
+    for(int i = 0; i < ENCODED; i++){
+        switch (i)
+        {
+        case 1:
+            encoded_msg[i] = check_bits[0];
+            break;
+        case 2:
+            encoded_msg[i] = check_bits[1];
+            break;
+        case 4:
+            encoded_msg[i] = check_bits[2];
+            break;
+        case 8:
+            encoded_msg[i] = check_bits[3];
+            break;
+        case 16:
+            encoded_msg[i] = check_bits[4];
+            break;           
+        default:
+            encoded_msg[i] = decoded_msg[j];
+            j++;
+            break;
+        }
+    }
 }
 
-
+// TODO
 int print_output(){
     
 }
 
 void update_buffer(char encoded_msg[ENCODED], SOCKET socket, socketaddr addr){
     for (int i = 0; i < ENCODED; i++){
-        SENDER_BUFFER[sender_index + i] = encoded_msg[i];
+        SENDER_BUFFER[buff_current_size + i] = encoded_msg[i];
     }
-    sender_index += ENCODED;
-    if (sender_index > MAX_LENGTH - ENCODED){
+    buff_current_size += ENCODED;
+    if (buff_current_size > MAX_LENGTH - ENCODED){
         Sleep(50); // ???
-        write_socket(socket, &addr, SENDER_BUFFER, sender_index);
-        sender_index = 0;
+        write_socket(socket, &addr, SENDER_BUFFER, buff_current_size);
+        buff_current_size = 0;
     }
  
 }

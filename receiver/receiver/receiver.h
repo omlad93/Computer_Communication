@@ -22,7 +22,7 @@ typedef struct statistics {
 
 } stats;
 
-stats *server_stats;
+stats *receiver_stats;
 
 int received_msg_size;
 
@@ -35,3 +35,5 @@ void fix_hamming_message(char msg[MAX_LENGTH], char fixed_msg[MAX_LENGTH], int m
 void fix_hamming_substring(int start, char msg[MAX_LENGTH], char fixed_msg[MAX_LENGTH]);
 
 void calc_curr_substring(int start, char msg[MAX_LENGTH], char substring[ENCODED]);
+
+void print_receiver_output();
