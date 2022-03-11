@@ -6,10 +6,6 @@
 */
 void update_sharedata(int source, int port, str ip) {
     SDP sdp = &sd;
-    if (first_init) {
-        first_init = FALSE;
-        memset(sdp, 0, sizeof(sd));
-    }
     str m = (source == RECEIVER) ? "Receiver" : "Sender";
     if (source == RECEIVER) {
         sdp->receiver_port = port;
@@ -44,6 +40,8 @@ int calc_hamming_bit(int pos, char encoded_msg[ENCODED]) {
             return 1;
         }
     }
+    return -1;  // WHAT SHOULD BE HERE?
+    // -1 IS FOR COMPILATION ONLY}
 }
 
 // Bits Utility Functions
@@ -63,11 +61,11 @@ int parity(int val, int mask) {
 }
 
 /*extarcts only the data bits from the encoded message*/
-void get_msg_data_bits(char encoded_data[ENCODED], char sripped_data[DECODED]) {
+void get_msg_data_bits(char encoded_data[ENCODED], char stripped_data[DECODED]) {
     int j = 0;
-    for (int i = 0; i < encoded_data; i++) {
+    for (int i = 0; i < ENCODED; i++) {
         if (not(is_check_bit_pos(i))) {
-            sripped_data[j] = encoded_data[i];
+            stripped_data[j] = encoded_data[i];
             j++;
         }
     }
@@ -86,8 +84,8 @@ char get_bit_from_char(char c, int idx) {
     return wanted_bit;
 }
 
-void get_next_bits(str data, char res[PARITY_BITS], int idx, int bit_count) {
-}
+// void get_next_bits(str data, char res[PARITY_BITS], int idx, int bit_count) {
+// }
 
 /*
     TODO: Document
@@ -176,19 +174,20 @@ int bind_socket(SOCKET s, socketaddr* addr) {
 /*
     Function fot Reading information from socket
     reads at most `size` bytes
+    reads all data that can be read from socket
     information is saved in `data` vairable
     returns size of actual bytes that read from socket
     asserting no error occurred
 */
-int read_socket(SOCKET s, socketaddr* addr, str data, int size) {
+int read_socket(SOCKET s, str data, int size) {
     // do while res > 0
-    int res;
+    int res = 0;
     char message[45];
     do {
         res += recv(s, data, size, 0);
         assert_num(res >= 0, "Read Message Failed", WSAGetLastError());
     } while (res > 0);
-    sprinf_s(message, "read_socket(): Read %d / %d Bytes", res, size);
+    sprintf(message, "read_socket(): Read %d / %d Bytes", res, size);
     log_err(message);
     return res;
 }
@@ -196,19 +195,20 @@ int read_socket(SOCKET s, socketaddr* addr, str data, int size) {
 /*
     Function fot Writing information to socket
     writes at most `size` bytes
+    writes all data from buffer
     information is written from `data` vairable
     returns size of actual bytes that read from socket
     asserting no error occurred
 */
-int write_socket(SOCKET s, socketaddr* addr, str data, int size) {
+int write_socket(SOCKET s, str data, int size) {
     // finish when res == size
-    int res;
+    int res = 0;
     char message[45];
     do {
         res += send(s, data, size, 0);
         assert_num(res >= 0, "Write Message Failed", WSAGetLastError());
     } while (res < size);
-    sprinf_s(message, "read_socket(): Read %d / %d Bytes", res, size);
+    sprintf(message, "read_socket(): Read %d / %d Bytes", res, size);
     assert_num(res == size, "write_socket wrote too much bytes", res);
     log_err(message);
     return res;

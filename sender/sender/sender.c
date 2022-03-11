@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     update_sharedata(SENDER, port, ip);
     assert(connect(socket,&channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied");
     //ask for file
-    printf("Plase enter file name\n");
+    printf("Please enter file name\n");
     scanf("%s", &filename);
     //file = fopen(filename, "rb"); 
 

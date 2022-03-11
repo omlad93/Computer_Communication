@@ -1,5 +1,8 @@
 #include "noisy_channel.h"
 
+#include <io.h>
+#include <stdio.h>
+#include <sys/types.h>
 /*
     set noise with proper parameters according to user input
 */
@@ -58,11 +61,38 @@ int apply_noise(Noise_p noise, str data, int size) {
     return noise->flipped;
 }
 
+void pseudo_sender() {
+    char buff[MAX_LENGTH];
+    int status;
+    socketaddr channel_addr;
+    SOCKET socket = create_socket();
+    memset(&channel_addr, 0, sizeof(channel_addr));
+    set_address(&channel_addr, HC_SENDER_PORT, HC_SENDER_IP);
+    log_err("Pseudo-Sender is Connecting:");
+    assert_num(connect(socket, &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection failed", WSAGetLastError());
+    sprintf(buff, "Hello World!");
+    status = write_socket(socket, buff, 13);
+    log_err("Pseudo-Sender Sent Message:");
+    log_err(buff);
+}
+
+void pseudo_receiver() {
+    char buff[MAX_LENGTH];
+    int status;
+    socketaddr channel_addr;
+    SOCKET socket = create_socket();
+    memset(&channel_addr, 0, sizeof(channel_addr));
+    set_address(&channel_addr, HC_RECEIVER_PORT, HC_RECEIVER_IP);
+    assert(connect(socket, &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection failed");
+    status = read_socket(socket, buff, MAX_LENGTH);
+    log_err("Pseudo-Receiver Got Message:");
+    log_err(buff);
+}
+
 int main(int argc, char* argv[]) {
     /* Questions:
      * who supplies IP for server and sender?
      * Who supplies self port?
-     *
      */
     int a1, a2, selection, size = 0, write_size = 0;
     int counter = 0;
@@ -83,12 +113,15 @@ int main(int argc, char* argv[]) {
     socketaddr receiver_sa, sender_sa;
 
     // INIT
+    // pseudo_receiver();
+    // pseudo_sender();
 
     // Channel <-> Sender
     while (not(sdp->open_channel)) {
-        sleep(50);
+        Sleep(500);
         counter++;
         if (counter == 4) {
+            log_err("channel used hard-coded IPs and ports");
             update_sharedata(SENDER, HC_SENDER_PORT, HC_SENDER_IP);
             update_sharedata(RECEIVER, HC_RECEIVER_PORT, HC_RECEIVER_IP);
             break;
@@ -96,18 +129,21 @@ int main(int argc, char* argv[]) {
     }
     SOCKET sender_socket = create_socket();
     SOCKET receiver_socket = create_socket();
+
     set_address(&sender_sa, sdp->sender_port, sdp->sender_ip);
     set_address(&receiver_sa, sdp->receiver_port, sdp->receiver_ip);
-    bind_socket(sender_socket, &sender_sa);
-    bind_socket(receiver_socket, &receiver_sa);
+    bind_socket(sender_socket, (socketaddr*)&sender_sa);
+    bind_socket(receiver_socket, (socketaddr*)&receiver_sa);
     listen(sender_socket, 0);
     listen(receiver_socket, 0);
+    log_err("channel is listening on both sockets");
 
     // Channel <-> Server
 
     while (TRUE) {
-        accept(sender_socket, &sender_sa, sizeof(sender_sa));
-        accept(receiver_socket, &receiver_sa, sizeof(receiver_sa));
+        accept(sender_socket, (socketaddr*)&sender_sa, NULL);
+        accept(receiver_socket, NULL, NULL);
+        pseudo_sender(); // debugggg
         FD_ZERO(&sender_fds);
         FD_ZERO(&receiver_fds);
         FD_SET(sender_socket, &sender_fds);
@@ -119,7 +155,7 @@ int main(int argc, char* argv[]) {
                 // if so simply break
                 break;
             }
-            assert_num(FALSE, "Channel Socket Selection", WSAGetLastError())
+            assert_num(FALSE, "Channel Socket Selection", WSAGetLastError());
 
         } else {
             assert(selection >= 0, "Selection Failed [Channel]");
@@ -127,12 +163,12 @@ int main(int argc, char* argv[]) {
             //     log_err("Channel Finished Reading From Socket");
             //     break;  // DONE
 
-            size = read_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, MAX_LENGTH);
+            size = read_socket(sender_socket, CHANNEL_BUFFER, MAX_LENGTH);
             // FLIPPED_COUNTER += apply_noise(noise, CHANNEL_BUFFER, size);
-            write_size = write_socket(receiver_socket, &receiver_sa, CHANNEL_BUFFER, size);
+            write_size = write_socket(receiver_socket, CHANNEL_BUFFER, size);
 
-            size = read_socket(receiver_socket, &receiver_sa, CHANNEL_BUFFER, MAX_LENGTH);  // read the message from the server
-            write_size = write_socket(sender_socket, &sender_sa, CHANNEL_BUFFER, size);
+            size = read_socket(receiver_socket, CHANNEL_BUFFER, MAX_LENGTH);  // read the message from the server
+            write_size = write_socket(sender_socket, CHANNEL_BUFFER, size);
         }
     }
     free(noise);

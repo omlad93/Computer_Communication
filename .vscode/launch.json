@@ -9,9 +9,9 @@
         ""
       ],
       "stopAtEntry": false,
-      "cwd": "c:/Users/omlad/source/repos/CC1/utils/utils",
+      "cwd": "c:/Users/omlad/source/repos/CC1/utils",
       "environment": [],
-      "program": "c:/Users/omlad/source/repos/CC1/utils/utils/build/Debug/outDebug",
+      "program": "c:/Users/omlad/source/repos/CC1/utils/build/Release/outRelease",
       "internalConsoleOptions": "openOnSessionStart",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",

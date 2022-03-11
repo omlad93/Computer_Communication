@@ -1,4 +1,6 @@
-#pragma once
+// #pragma once
+#ifndef UTIULS
+#define UTILS
 #include <conio.h>
 #include <errno.h>
 #include <math.h>
@@ -12,7 +14,7 @@
 #define not(x) (!x)
 #define xor (a, b)(a ^ b)
 #define from_binary(s) ((int)strtol(s, NULL, 2))
-#define is_check_bit_pos(i)(i == 1 || i == 2 || i == 4 || i == 8 || i == 16)
+#define is_check_bit_pos(i) (i == 1 || i == 2 || i == 4 || i == 8 || i == 16)
 #define SENDER -1
 #define RECEIVER -2
 #define DECODED 26
@@ -27,12 +29,8 @@
 #define P8_MASK from_binary("0000000111111110000000011111111")
 #define P16_MASK from_binary("0000000000000001111111111111111")
 
-
 typedef struct sockaddr_in socketaddr;
 typedef char* str;
-
-
-
 
 /*
     print message to stderr and create newline
@@ -75,7 +73,6 @@ typedef struct sharedData {
     int open_channel;
 } SharedData;
 typedef SharedData* SDP;
-int first_init = TRUE;
 SharedData sd;
 // SDP sdp = &sd;
 // memset(sdp, 0, sizeof(dp));
@@ -165,7 +162,7 @@ int bind_socket(SOCKET socket, socketaddr* addr);
     returns size of actual bytes that read from socket
     asserting no error occurred
 */
-int read_socket(SOCKET socket, socketaddr* addr, str data, int size);
+int read_socket(SOCKET socket, str data, int size);
 
 /*
     Function fot Writing information to socket
@@ -174,7 +171,7 @@ int read_socket(SOCKET socket, socketaddr* addr, str data, int size);
     returns size of actual bytes that read from socket
     asserting no error occurred
 */
-int write_socket(SOCKET socket, socketaddr* addr, str data, int size);
+int write_socket(SOCKET socket, str data, int size);
 
 /*
     A loop of waiting for information on socket
@@ -185,3 +182,5 @@ int write_socket(SOCKET socket, socketaddr* addr, str data, int size);
     Can be moved to server.c !
 */
 int server_loop(SOCKET socket, socketaddr* addr, str data, int size);
+
+#endif
