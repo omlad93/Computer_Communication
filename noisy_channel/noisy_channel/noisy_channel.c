@@ -87,6 +87,12 @@ int main(int argc, char* argv[]) {
     // Channel <-> Sender
     while (not(sdp->open_channel)) {
         sleep(50);
+        counter++;
+        if (counter == 4) {
+            update_sharedata(SENDER, HC_SENDER_PORT, HC_SENDER_IP);
+            update_sharedata(RECEIVER, HC_RECEIVER_PORT, HC_RECEIVER_IP);
+            break;
+        }
     }
     SOCKET sender_socket = create_socket();
     SOCKET receiver_socket = create_socket();

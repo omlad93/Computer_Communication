@@ -4,7 +4,9 @@
 #define DETERMINISTIC "-d"
 #define random_double() (double)(rand() / RAND_MAX)
 
-char CHANNEL_BUFFER[MAX_LENGTH];
+HARD_CODED_SP 15 HARD_CODED_RP 16
+
+    char CHANNEL_BUFFER[MAX_LENGTH];
 int TRANSFER_COUNTER = 0;
 int FLIPPED_COUNTER = 0;
 typedef struct Noise {
