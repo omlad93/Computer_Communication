@@ -11,8 +11,14 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "utils", "..\utils\utils\utils.vcxproj", "{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sender", "..\sender\sender\sender.vcxproj", "{EFA4697A-5B14-4087-AABE-DD459C4E72EC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D} = {6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "receiver", "..\receiver\receiver\receiver.vcxproj", "{1CA67FCB-4163-4228-9AFA-365909F82435}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6BD106B6-E85E-4EAC-946A-1E3F682A1B6D} = {6BD106B6-E85E-4EAC-946A-1E3F682A1B6D}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
