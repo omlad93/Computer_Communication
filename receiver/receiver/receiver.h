@@ -7,11 +7,10 @@
 #include <sys/timeb.h>
 #include <sys/types.h>
 #include <winsock2.h>
-
 #include "../../utils/utils/utils.h"
 
-#define _CRT_SECURE_NO_WARNINGS
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
+//#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #pragma once
 
 

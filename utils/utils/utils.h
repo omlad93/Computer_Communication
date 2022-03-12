@@ -1,9 +1,9 @@
 // #pragma once
 #ifndef UTIULS
 #define UTILS
-#define _CRT_SECURE_NO_WARNINGS
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#define __STDC_LIB_EXT1__
+// #define _CRT_SECURE_NO_WARNINGS
+// #define _WINSOCK_DEPRECATED_NO_WARNINGS
+//#define __STDC_LIB_EXT1__
 
 #include <conio.h>
 #include <errno.h>
@@ -13,6 +13,7 @@
 #include <string.h>
 #include <sys/timeb.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <winsock2.h>
 
 #define not(x) (!x)
@@ -37,8 +38,8 @@
 #define HC_SENDER_IP "127.0.0.1"
 #define HC_RECEIVER_PORT 6343
 #define HC_RECEIVER_IP "127.0.0.1"
-#define HC_INPUT "C:\\Users\\irist\\source\\repos\\cc1\\input.bin"
-#define HC_OUTPUT "C:\\Users\\irist\\source\\repos\\cc1\\output.bin"
+#define HC_INPUT "input.bin"
+#define HC_OUTPUT "output.bin"
 
 typedef struct sockaddr_in socketaddr;
 typedef char* str;

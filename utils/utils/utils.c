@@ -180,14 +180,11 @@ int bind_socket(SOCKET s, socketaddr* addr) {
     asserting no error occurred
 */
 int read_socket(SOCKET s, str data, int size) {
-    // do while res > 0
-    int res = 0;
-    char message[45];
-    do {
-        res += recv(s, data, size, 0);
-        assert_num(res >= 0, "Read Message Failed", WSAGetLastError());
-    } while (res > 0);
-    sprintf(message, "read_socket(): Read %d / %d Bytes", res, size);
+
+    char message[45];  
+    int res = recv(s, data, size, 0);
+    assert(res==size, "Receiveing Failed");
+    sprintf(message, "\tread_socket(): Read %d / %d Bytes", res, size);
     log_err(message);
     return res;
 }
@@ -202,12 +199,10 @@ int read_socket(SOCKET s, str data, int size) {
 */
 int write_socket(SOCKET s, str data, int size) {
     // finish when res == size
-    int res = 0;
+    int res=0,addition = 0;
     char message[45];
-    do {
-        res += send(s, data, size, 0);
-        assert_num(res >= 0, "Write Message Failed", WSAGetLastError());
-    } while (res < size);
+    res = send(s, data, size, 0);
+    assert(res == size, "Sending Failed");
     sprintf(message, "\twrite_socket(): wrote %d / %d Bytes", res, size);
     assert_num(res == size, "write_socket wrote too much bytes", res);
     log_err(message);

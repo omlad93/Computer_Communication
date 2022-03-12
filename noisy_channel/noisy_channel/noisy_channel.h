@@ -1,8 +1,8 @@
 // #pragma once
 #ifndef NOISY_CHANNEL
 #define NOISY_CHANNEL
-#define _CRT_SECURE_NO_WARNINGS
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
+//#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include <winsock2.h>
 #include "../../utils/utils/utils.h"
@@ -14,6 +14,7 @@
 char CHANNEL_BUFFER[MAX_LENGTH];
 int TRANSFER_COUNTER = 0;
 int FLIPPED_COUNTER = 0;
+
 typedef struct Noise {
     str type;
     int n;

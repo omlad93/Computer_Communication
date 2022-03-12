@@ -69,7 +69,7 @@ void pseudo_sender() {
     memset(&channel_addr, 0, sizeof(channel_addr));
     set_address(&channel_addr, HC_SENDER_PORT, HC_SENDER_IP);
     log_err("Pseudo-Sender is Connecting:");
-    assert_num(connect(socket, (SOCKADDR*) &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection failed", WSAGetLastError());
+    assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection failed", WSAGetLastError());
     sprintf(buff, "Hello World!");
     status = write_socket(socket, buff, 13);
     log_err("Pseudo-Sender Sent Message:");
@@ -83,7 +83,7 @@ void pseudo_receiver() {
     SOCKET socket = create_socket();
     memset(&channel_addr, 0, sizeof(channel_addr));
     set_address(&channel_addr, HC_RECEIVER_PORT, HC_RECEIVER_IP);
-    assert(connect(socket, (SOCKADDR*) &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection failed");
+    assert(connect(socket, (SOCKADDR*)&channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection failed");
     status = read_socket(socket, buff, MAX_LENGTH);
     log_err("Pseudo-Receiver Got Message:");
     log_err(buff);
@@ -97,15 +97,11 @@ int main(int argc, char* argv[]) {
     int a1, a2, selection, size = 0, write_size = 0;
     int counter = 0;
     str noise_type;
+    char user_command[4] = {"yes"};
     assert_num((argc <= 4) & (argc > 1), "Noisy Channel Got Unexpected Numer og Arguments", argc);
     noise_type = argv[1];
     a1 = atoi(argv[2]);
-    if (argc == 4) {
-        a2 = atoi(argv[3]);
-    } else {
-        a2 = 0;
-    }
-    // a2 = (argc == 3) ? atoi(argv[3]) : 0;
+    a2 = (argc == 4) ? atoi(argv[3]) : 0;
     Noise_p noise = (Noise_p)(calloc(1, sizeof(Noise)));
     generate_noise(noise, noise_type, a1, a2);
     SDP sdp = &sd;
@@ -116,14 +112,9 @@ int main(int argc, char* argv[]) {
 
     // Channel <-> Sender
     while (not(sdp->open_channel)) {
-        //Sleep(1000);
-        //counter++;
-        //if (counter == 4) {
-            //log_err("channel used hard-coded IPs and ports");
         update_sharedata(SENDER, HC_SENDER_PORT, HC_SENDER_IP);
         update_sharedata(RECEIVER, HC_RECEIVER_PORT, HC_RECEIVER_IP);
         break;
-        //}
     }
     SOCKET listen_socket_sender = create_socket();
     SOCKET listen_socket_receiver = create_socket();
@@ -134,16 +125,17 @@ int main(int argc, char* argv[]) {
     bind_socket(listen_socket_sender, &sender_sa);
     bind_socket(listen_socket_receiver, &receiver_sa);
     log_err("\tchannel did bind() on both sockets");
-    assert_num(listen(listen_socket_sender, SOMAXCONN)  == 0 , "listening to sender Returned non-zero",WSAGetLastError());
+    assert_num(listen(listen_socket_sender, SOMAXCONN) == 0, "listening to sender Returned non-zero", WSAGetLastError());
     assert_num(listen(listen_socket_receiver, SOMAXCONN) == 0, "listening to recieverReturned non-zero", WSAGetLastError());
     log_err("\tchannel is listening on both sockets");
     int size_blah = sizeof(socketaddr);
     // Channel <-> Server
 
-    while (TRUE) {
+    while (strcmp(user_command, "no") != 0) {
+        log_err("\tchannel is waiting for sockets :)");
         sender_socket = accept(listen_socket_sender, NULL, NULL);
         receiver_socket = accept(listen_socket_receiver, NULL, NULL);
-        //receiver_socket = accept(listen_socket_receiver, (SOCKADDR*) &receiver_sa, &size_blah);
+        // receiver_socket = accept(listen_socket_receiver, (SOCKADDR*) &receiver_sa, &size_blah);
         assert(sender_socket != INVALID_SOCKET, "sender socket is invalid");
         assert(receiver_socket != INVALID_SOCKET, "receiver socket is invalid");
         log_err("\tchannel has accepted both sockets");
@@ -151,32 +143,27 @@ int main(int argc, char* argv[]) {
         FD_ZERO(&receiver_fds);
         FD_SET(sender_socket, &sender_fds);
         FD_SET(receiver_socket, &receiver_fds);
-        selection = select(2, &sender_fds, &receiver_fds, NULL, NULL);
-        if (selection == SOCKET_ERROR) {
-            if (WSAGetLastError() == WSANOTINITIALISED) {
-                // was not initialized == closed ??
-                // if so simply break
-                break;
-            }
-            assert_num(FALSE, "Channel Socket Selection", WSAGetLastError());
+        assert_num(selection = select(2, &sender_fds, &receiver_fds, NULL, NULL) != SOCKET_ERROR, "Selection Error", WSAGetLastError());
+        log_err("\tSelection Complete");
+        size = read_socket(sender_socket, CHANNEL_BUFFER, 62); // ADD SIZE PARSING
+        log_err("\tGot message from socket (sender)");
+        FLIPPED_COUNTER = apply_noise(noise, CHANNEL_BUFFER, size);
+        write_size = write_socket(receiver_socket, CHANNEL_BUFFER, 62);  // ADD SIZE PARSING
+        log_err("\tWrote message to socket (receiver)");     
 
-        } else {
-            assert(selection >= 0, "Selection Failed [Channel]");
-            // if (FD_ISSET(server_socket, &fs)) {
-            //     log_err("Channel Finished Reading From Socket");
-            //     break;  // DONE
-
-            size = read_socket(sender_socket, CHANNEL_BUFFER, MAX_LENGTH);
-            // FLIPPED_COUNTER += apply_noise(noise, CHANNEL_BUFFER, size);
-            write_size = write_socket(receiver_socket, CHANNEL_BUFFER, size);
-
-            size = read_socket(receiver_socket, CHANNEL_BUFFER, MAX_LENGTH);  // read the message from the server
-            write_size = write_socket(sender_socket, CHANNEL_BUFFER, size);
-        }
+        closesocket(receiver_socket);
+        closesocket(sender_socket);
+        do {
+                log_err("\tcountine?");
+                assert(scanf("%s", user_command)!=0,"Scanning Failed");
+                if (not(strcmp(user_command, "yes"))) break;
+                if (not(strcmp(user_command,"no"))) break;
+        } while (TRUE);
+        
     }
     free(noise);
-    closesocket(receiver_socket);
-    closesocket(sender_socket);
+    closesocket(listen_socket_sender);
+    closesocket(listen_socket_receiver);
     WSACleanup();
     printf("%d, %d", size, write_size);
     // print_channel_output(server_ip, sender_ip);

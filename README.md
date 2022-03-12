@@ -21,5 +21,6 @@ In order to be able to build the  `solution` properly, make sure to follow this 
     can be defined by clicking on `project` tab and then `project build order`
 * configure running for the solution in order `noisy_channel`->`sender`->`receiver`  
   can be defined by right-clicking on `solution noisy channel` and then `set startup projects`
+* ignore unsafe functions: add `4996` to  `Properties > C/C++ > Advanced property->Disable Specific Warnings` to all projects
 
 ![running order configuration](./config.jpg)

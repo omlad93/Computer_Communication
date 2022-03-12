@@ -1,6 +1,5 @@
 #include "sender.h"
 #include <stdio.h>
-#define _CRT_SECURE_NO_WARNINGS
 
 int main(int argc, char* argv[]) {
     FILE* file;
@@ -27,8 +26,7 @@ int main(int argc, char* argv[]) {
     printf("got file: %s\n", filename);
 
     while (strcmp(filename, "quit") != 0){
-
-        assert(fopen_s(&file, filename, "rb")==0,"Error in openninf file\n");
+        assert(fopen_s(&file, filename, "rb")==0,"Error in openning file\n");
  
         //loop over the file
         buff_current_size = 0;
@@ -39,6 +37,7 @@ int main(int argc, char* argv[]) {
             log_err("\treading file");
         }
         printf("\tSender Read File: buffer size is %d\n",buff_current_size);
+        
         //send
         write_socket(socket, SENDER_BUFFER, buff_current_size);
 
@@ -58,7 +57,7 @@ int main(int argc, char* argv[]) {
         assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied", WSAGetLastError());
         //ask for new filename (if "quit" - close the socket)
         printf("\tPlase enter file name\n");
-        scanf("%s", filename);
+        assert(scanf("%s", filename) != 0, "Scanning Failed");
     }
     log_err("\tFinished");
     //cleanup

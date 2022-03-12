@@ -100,7 +100,6 @@ int main(int argc, char* argv[]) {
     char msg[MAX_LENGTH];
     char fixed_msg[MAX_LENGTH];
     int status = 0;
-    int err;
 
     // create a socket
     socketaddr channel_addr;
@@ -115,17 +114,16 @@ int main(int argc, char* argv[]) {
     received_msg_size = 0;
     // ask for file
     printf("\tPlase enter file name\n");
-    scanf_s("%s", filename, (unsigned int)sizeof(filename));
-    assert(filename != NULL, "FileName");
-    printf("got file: %s", filename);
+    //scanf_s("%s", filename, (unsigned int)sizeof(filename));
+    //assert(filename != NULL, "FileName");
+
+    strcpy(filename, HC_OUTPUT);
+    printf("got file: %s\n", filename);
 
     // file = fopen(filename, "wb");
     while (!strcmp(filename, "quit")) {
-        err = fopen_s(&file, filename, "wb");
-        if (err == 0) {
-            printf("Error in openninf file\n");
-            break;
-        }
+
+        assert(fopen_s(&file, filename, "rb") == 0, "Error in openning file\n");
         // read message
         status = read_socket(socket, RECEIVER_BUF, MAX_LENGTH);
         received_msg_size += status;
@@ -136,7 +134,7 @@ int main(int argc, char* argv[]) {
         // write the received message to file
 
         // sends a respond
-        respond_to_sender(socket);
+        //respond_to_sender(socket);
 
         // print to file
         //print_receiver_file();
@@ -151,7 +149,7 @@ int main(int argc, char* argv[]) {
 
         // ask for new filename (if "quit" - close the socket)
         printf("\tPlase enter file name\n");
-        scanf_s("%s", filename, (unsigned int)sizeof(filename));
+        assert(scanf("%s", filename) != 0, "Scanning Failed");
     }
 
     // cleanup
