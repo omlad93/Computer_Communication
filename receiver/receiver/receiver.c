@@ -107,13 +107,14 @@ int main(int argc, char* argv[]) {
     SOCKET socket = create_socket();
     memset(&channel_addr, 0, sizeof(channel_addr));
     set_address(&channel_addr, port, ip);
-    update_sharedata(RECEIVER, port, ip);
+    //update_sharedata(RECEIVER, port, ip);
+    printf("Reciever\n\tConnecting");
     assert_num(connect(socket, (SOCKADDR*) &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection falied",WSAGetLastError());
 
     receiver_stats = (stats*)calloc(1, sizeof(stats));
     received_msg_size = 0;
     // ask for file
-    printf("Plase enter file name\n");
+    printf("\tPlase enter file name\n");
     scanf_s("%s", filename, (unsigned int)sizeof(filename));
 
     // file = fopen(filename, "wb");
@@ -147,7 +148,7 @@ int main(int argc, char* argv[]) {
         assert(connect(socket, (SOCKADDR*) &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection falied");
 
         // ask for new filename (if "quit" - close the socket)
-        printf("Plase enter file name\n");
+        printf("\tPlase enter file name\n");
         scanf_s("%s", filename, (unsigned int)sizeof(filename));
     }
 

@@ -17,10 +17,11 @@ int main(int argc, char* argv[]) {
     SOCKET socket = create_socket();
 	memset(&channel_addr, 0, sizeof(channel_addr));
 	set_address(&channel_addr, port, ip);
-    update_sharedata(SENDER, port, ip);
-    assert(connect(socket, (SOCKADDR*) &channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied");
+    // update_sharedata(SENDER, port, ip);
+    printf("Sender\n\tConnecting");
+    assert_num(connect(socket, (SOCKADDR*) &channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied", WSAGetLastError());
     //ask for file
-    printf("Please enter file name\n");
+    printf("\tPlease enter file name\n");
     scanf_s("%s", filename, (unsigned int)sizeof(filename));
     //file = fopen(filename, "rb"); 
 
@@ -57,7 +58,7 @@ int main(int argc, char* argv[]) {
         assert_num(connect(socket, (SOCKADDR*) &channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied",WSAGetLastError());
 
         //ask for new filename (if "quit" - close the socket)
-        printf("Plase enter file name\n");
+        printf("\tPlase enter file name\n");
         scanf_s("%s", filename, (unsigned int)sizeof(filename));
     }
     //cleanup

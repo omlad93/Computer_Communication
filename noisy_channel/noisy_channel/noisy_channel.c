@@ -125,22 +125,23 @@ int main(int argc, char* argv[]) {
             break;
         }
     }
-    SOCKET sender_socket = create_socket();
-    SOCKET receiver_socket = create_socket();
+    SOCKET listen_socket_sender = create_socket();
+    SOCKET listen_socket_receiver = create_socket();
+    SOCKET sender_socket, receiver_socket;
 
     set_address(&sender_sa, sdp->sender_port, sdp->sender_ip);
     set_address(&receiver_sa, sdp->receiver_port, sdp->receiver_ip);
-    bind_socket(sender_socket, (socketaddr*)&sender_sa);
-    bind_socket(receiver_socket, (socketaddr*)&receiver_sa);
-    listen(sender_socket, 0);
-    listen(receiver_socket, 0);
+    bind_socket(listen_socket_sender, (socketaddr*)&sender_sa);
+    bind_socket(listen_socket_receiver, (socketaddr*)&receiver_sa);
+    listen(listen_socket_sender, 0);
+    listen(listen_socket_receiver, 0);
     log_err("channel is listening on both sockets");
-
+    int size_blah = sizeof(socketaddr);
     // Channel <-> Server
 
     while (TRUE) {
-        accept(sender_socket, (SOCKADDR*) &sender_sa, NULL);
-        accept(receiver_socket, NULL, NULL);
+        sender_socket = accept(listen_socket_sender, (SOCKADDR*) &sender_sa, &size_blah );
+        receiver_socket = accept(listen_socket_receiver, (SOCKADDR*) &receiver_sa, &size_blah);
         log_err("channel has accepted both sockets");
         FD_ZERO(&sender_fds);
         FD_ZERO(&receiver_fds);
