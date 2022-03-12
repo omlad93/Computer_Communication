@@ -1,6 +1,8 @@
 // #pragma once
 #ifndef UTIULS
 #define UTILS
+#define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <conio.h>
 #include <errno.h>
 #include <math.h>

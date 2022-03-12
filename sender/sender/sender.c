@@ -1,5 +1,6 @@
-#include "sender/sender.h"
+#include "sender.h"
 #include <stdio.h>
+#define _CRT_SECURE_NO_WARNINGS
 
 int main(int argc, char* argv[]) {
     FILE* file;
@@ -8,6 +9,7 @@ int main(int argc, char* argv[]) {
 	char* filename;
     char decoded_msg[DECODED];
     char encoded_msg[ENCODED];
+    int err;
     //char *total_encoded_msg[];
 
     //create a socket
@@ -19,12 +21,12 @@ int main(int argc, char* argv[]) {
     assert(connect(socket,&channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied");
     //ask for file
     printf("Please enter file name\n");
-    scanf("%s", &filename);
+    scanf_s("%s", &filename);
     //file = fopen(filename, "rb"); 
 
     while (!strcmp(filename, "quit")){
-        file = fopen(filename, "rb");
-        if (file == NULL){
+        err = fopen_s(&file, filename, "rb");
+        if (err == 0){
             printf("Error in openninf file\n");
             break;
         }
@@ -37,10 +39,10 @@ int main(int argc, char* argv[]) {
             update_buffer(encoded_msg, socket, channel_addr);
         }
         //send
-        write_socket(socket, &channel_addr, SENDER_BUFFER, buff_current_size);
+        write_socket(socket, SENDER_BUFFER, buff_current_size);
 
         //wait for an answer
-        socket =  read_socket(socket,  &channel_addr, SENDER_BUFFER, MAX_LENGTH);
+        socket =  read_socket(socket, SENDER_BUFFER, MAX_LENGTH);
 
         //close socket and report number of bytes that were witten and read
         print_output();
@@ -56,7 +58,7 @@ int main(int argc, char* argv[]) {
 
         //ask for new filename (if "quit" - close the socket)
         printf("Plase enter file name\n");
-        scanf("%s", &filename);
+        scanf_s("%s", &filename);
     }
     //cleanup
     shutdown(socket,SD_BOTH);

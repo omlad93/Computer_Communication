@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <winsock2.h>
 
-#include "utils.h"
+#include "../../utils/utils/utils.h"
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -37,3 +37,5 @@ void fix_hamming_substring(int start, char msg[MAX_LENGTH], char fixed_msg[MAX_L
 void calc_curr_substring(int start, char msg[MAX_LENGTH], char substring[ENCODED]);
 
 void print_receiver_output();
+
+void respond_to_sender(SOCKET socket);

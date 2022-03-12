@@ -11,7 +11,6 @@
 #include "../../utils/utils/utils.h"
 
 #define _CRT_SECURE_NO_WARNINGS
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 char SENDER_BUFFER[MAX_LENGTH];
 //char RECEIVER_BUFFER[MAX_LENGTH];

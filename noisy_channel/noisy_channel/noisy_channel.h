@@ -1,9 +1,12 @@
 // #pragma once
 #ifndef NOISY_CHANNEL
 #define NOISY_CHANNEL
-#include <winsock2.h>
+#define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
+#include <winsock2.h>
 #include "../../utils/utils/utils.h"
+
 #define RANDOMIZE "-r"
 #define DETERMINISTIC "-d"
 #define random_double() (double)(rand() / RAND_MAX)
