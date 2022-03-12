@@ -143,7 +143,7 @@ SOCKET create_socket() {
     WSADATA wsa_data;
     int su = WSAStartup(MAKEWORD(2, 2), &wsa_data);
     assert(su == NO_ERROR, "startup error");
-    s = socket(AF_INET, SOCK_STREAM, 0);
+    s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     assert(s != INVALID_SOCKET, "Invalid Socket");
     return s;
 }
@@ -157,7 +157,7 @@ SOCKET create_socket() {
 */
 void set_address(socketaddr* addr, int port, str ip) {
     addr->sin_family = AF_INET;
-    addr->sin_port = port;
+    addr->sin_port = htons(port);
     addr->sin_addr.s_addr = (ip == NULL) ? htonl(INADDR_ANY) : inet_addr(ip);
 }
 
@@ -166,7 +166,7 @@ void set_address(socketaddr* addr, int port, str ip) {
     asserting that binding succeeded
 */
 int bind_socket(SOCKET s, socketaddr* addr) {
-    int bind_condition = ((bind(s, (struct sockaddr*)addr, sizeof(*addr))) > 0);
+    int bind_condition = ((bind(s, (SOCKADDR*)addr, sizeof(struct sockaddr))) > 0);
     assert(bind_condition != SOCKET_ERROR, "Binding Failed");
     return TRUE;
 }

@@ -120,8 +120,8 @@ int main(int argc, char* argv[]) {
         counter++;
         if (counter == 4) {
             //log_err("channel used hard-coded IPs and ports");
-            //update_sharedata(SENDER, HC_SENDER_PORT, HC_SENDER_IP);
-            //update_sharedata(RECEIVER, HC_RECEIVER_PORT, HC_RECEIVER_IP);
+            update_sharedata(SENDER, HC_SENDER_PORT, HC_SENDER_IP);
+            update_sharedata(RECEIVER, HC_RECEIVER_PORT, HC_RECEIVER_IP);
             break;
         }
     }
@@ -131,18 +131,21 @@ int main(int argc, char* argv[]) {
 
     set_address(&sender_sa, sdp->sender_port, sdp->sender_ip);
     set_address(&receiver_sa, sdp->receiver_port, sdp->receiver_ip);
-    bind_socket(listen_socket_sender, (socketaddr*)&sender_sa);
-    bind_socket(listen_socket_receiver, (socketaddr*)&receiver_sa);
-    listen(listen_socket_sender, 0);
-    listen(listen_socket_receiver, 0);
-    log_err("channel is listening on both sockets");
+    bind_socket(listen_socket_sender, &sender_sa);
+    bind_socket(listen_socket_receiver, &receiver_sa);
+    listen(listen_socket_sender, SOMAXCONN);
+    listen(listen_socket_receiver, SOMAXCONN);
+    log_err("\tchannel is listening on both sockets");
     int size_blah = sizeof(socketaddr);
     // Channel <-> Server
 
     while (TRUE) {
-        sender_socket = accept(listen_socket_sender, (SOCKADDR*) &sender_sa, &size_blah );
-        receiver_socket = accept(listen_socket_receiver, (SOCKADDR*) &receiver_sa, &size_blah);
-        log_err("channel has accepted both sockets");
+        sender_socket = accept(listen_socket_sender, NULL, NULL);
+        receiver_socket = accept(listen_socket_receiver, NULL, NULL);
+        //receiver_socket = accept(listen_socket_receiver, (SOCKADDR*) &receiver_sa, &size_blah);
+        assert(sender_socket != INVALID_SOCKET, "sender socket is invalid");
+        assert(receiver_socket != INVALID_SOCKET, "receiver socket is invalid");
+        log_err("\tchannel has accepted both sockets");
         FD_ZERO(&sender_fds);
         FD_ZERO(&receiver_fds);
         FD_SET(sender_socket, &sender_fds);

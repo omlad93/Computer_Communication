@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
 	set_address(&channel_addr, port, ip);
     // update_sharedata(SENDER, port, ip);
     printf("Sender\n\tConnecting");
-    assert_num(connect(socket, (SOCKADDR*) &channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied", WSAGetLastError());
+    assert_num(connect(socket, (SOCKADDR*) &channel_addr,sizeof(struct sockaddr))!=SOCKET_ERROR,"connection falied", WSAGetLastError());
     //ask for file
     printf("\tPlease enter file name\n");
     scanf_s("%s", filename, (unsigned int)sizeof(filename));
