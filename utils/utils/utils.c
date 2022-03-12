@@ -167,7 +167,7 @@ void set_address(socketaddr* addr, int port, str ip) {
 */
 int bind_socket(SOCKET s, socketaddr* addr) {
     int bind_condition = ((bind(s, (SOCKADDR*)addr, sizeof(struct sockaddr))) > 0);
-    assert(bind_condition != SOCKET_ERROR, "Binding Failed");
+    assert(bind_condition == 0, "Binding Failed");
     return TRUE;
 }
 
@@ -208,7 +208,7 @@ int write_socket(SOCKET s, str data, int size) {
         res += send(s, data, size, 0);
         assert_num(res >= 0, "Write Message Failed", WSAGetLastError());
     } while (res < size);
-    sprintf(message, "read_socket(): Read %d / %d Bytes", res, size);
+    sprintf(message, "\twrite_socket(): wrote %d / %d Bytes", res, size);
     assert_num(res == size, "write_socket wrote too much bytes", res);
     log_err(message);
     return res;

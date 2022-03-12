@@ -6,44 +6,44 @@ int main(int argc, char* argv[]) {
     FILE* file;
     char* ip = argv[1];
 	int port = atoi(argv[2]);
-    char* filename = calloc(MAX_LENGTH, sizeof(char));
+    char filename[MAX_LENGTH];
     char decoded_msg[DECODED];
     char encoded_msg[ENCODED];
-    int err;
     //char *total_encoded_msg[];
 
     //create a socket
     socketaddr channel_addr;
     SOCKET socket = create_socket();
 	memset(&channel_addr, 0, sizeof(channel_addr));
-	set_address(&channel_addr, port, ip);
+	set_address(&channel_addr, HC_SENDER_PORT, HC_SENDER_IP);
     // update_sharedata(SENDER, port, ip);
-    printf("Sender\n\tConnecting");
+    printf("Sender\n\tConnecting\n");
     assert_num(connect(socket, (SOCKADDR*) &channel_addr,sizeof(struct sockaddr))!=SOCKET_ERROR,"connection falied", WSAGetLastError());
     //ask for file
     printf("\tPlease enter file name\n");
-    scanf_s("%s", filename, (unsigned int)sizeof(filename));
+    //scanf_s("%s", filename, (unsigned int)sizeof(filename));
     //file = fopen(filename, "rb"); 
+    strcpy(filename, HC_INPUT);
+    printf("got file: %s\n", filename);
 
-    while (!strcmp(filename, "quit")){
-        err = fopen_s(&file, filename, "rb");
-        if (err == 0){
-            printf("Error in openninf file\n");
-            break;
-        }
+    while (strcmp(filename, "quit") != 0){
 
+        assert(fopen_s(&file, filename, "rb")==0,"Error in openninf file\n");
+ 
         //loop over the file
         buff_current_size = 0;
         while(fread(encoded_msg, 1, 26, file) > 0){
             //apply hamming code
             hamming(decoded_msg, encoded_msg);
             update_buffer(encoded_msg, socket, channel_addr);
+            log_err("\treading file");
         }
+        printf("\tSender Read File: buffer size is %d\n",buff_current_size);
         //send
         write_socket(socket, SENDER_BUFFER, buff_current_size);
 
         //wait for an answer
-        socket =  read_socket(socket, SENDER_BUFFER, MAX_LENGTH);
+        //socket =  read_socket(socket, SENDER_BUFFER, MAX_LENGTH);
 
         //close socket and report number of bytes that were witten and read
         print_output();
@@ -55,12 +55,12 @@ int main(int argc, char* argv[]) {
 	    //memset(&channel_addr, 0, sizeof(channel_addr));
 	    //set_address(&channel_addr, port, ip);
         socket = create_socket();
-        assert_num(connect(socket, (SOCKADDR*) &channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied",WSAGetLastError());
-
+        assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied", WSAGetLastError());
         //ask for new filename (if "quit" - close the socket)
         printf("\tPlase enter file name\n");
-        scanf_s("%s", filename, (unsigned int)sizeof(filename));
+        scanf("%s", filename);
     }
+    log_err("\tFinished");
     //cleanup
     shutdown(socket,SD_BOTH);
     closesocket(socket);

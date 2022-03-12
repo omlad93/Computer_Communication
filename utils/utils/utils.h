@@ -34,10 +34,11 @@
 #define P16_MASK from_binary("0000000000000001111111111111111")
 
 #define HC_SENDER_PORT 6342
-#define HC_SENDER_IP "132.66.16.33"
+#define HC_SENDER_IP "127.0.0.1"
 #define HC_RECEIVER_PORT 6343
-#define HC_RECEIVER_IP "132.66.16.33"
-
+#define HC_RECEIVER_IP "127.0.0.1"
+#define HC_INPUT "C:\\Users\\irist\\source\\repos\\cc1\\input.bin"
+#define HC_OUTPUT "C:\\Users\\irist\\source\\repos\\cc1\\output.bin"
 
 typedef struct sockaddr_in socketaddr;
 typedef char* str;

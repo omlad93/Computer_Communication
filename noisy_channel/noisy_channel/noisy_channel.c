@@ -116,14 +116,14 @@ int main(int argc, char* argv[]) {
 
     // Channel <-> Sender
     while (not(sdp->open_channel)) {
-        Sleep(1000);
-        counter++;
-        if (counter == 4) {
+        //Sleep(1000);
+        //counter++;
+        //if (counter == 4) {
             //log_err("channel used hard-coded IPs and ports");
-            update_sharedata(SENDER, HC_SENDER_PORT, HC_SENDER_IP);
-            update_sharedata(RECEIVER, HC_RECEIVER_PORT, HC_RECEIVER_IP);
-            break;
-        }
+        update_sharedata(SENDER, HC_SENDER_PORT, HC_SENDER_IP);
+        update_sharedata(RECEIVER, HC_RECEIVER_PORT, HC_RECEIVER_IP);
+        break;
+        //}
     }
     SOCKET listen_socket_sender = create_socket();
     SOCKET listen_socket_receiver = create_socket();
@@ -133,8 +133,9 @@ int main(int argc, char* argv[]) {
     set_address(&receiver_sa, sdp->receiver_port, sdp->receiver_ip);
     bind_socket(listen_socket_sender, &sender_sa);
     bind_socket(listen_socket_receiver, &receiver_sa);
-    listen(listen_socket_sender, SOMAXCONN);
-    listen(listen_socket_receiver, SOMAXCONN);
+    log_err("\tchannel did bind() on both sockets");
+    assert_num(listen(listen_socket_sender, SOMAXCONN)  == 0 , "listening to sender Returned non-zero",WSAGetLastError());
+    assert_num(listen(listen_socket_receiver, SOMAXCONN) == 0, "listening to recieverReturned non-zero", WSAGetLastError());
     log_err("\tchannel is listening on both sockets");
     int size_blah = sizeof(socketaddr);
     // Channel <-> Server

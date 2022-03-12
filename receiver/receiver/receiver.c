@@ -106,9 +106,9 @@ int main(int argc, char* argv[]) {
     socketaddr channel_addr;
     SOCKET socket = create_socket();
     memset(&channel_addr, 0, sizeof(channel_addr));
-    set_address(&channel_addr, port, ip);
+    set_address(&channel_addr, HC_RECEIVER_PORT, HC_RECEIVER_IP);
     //update_sharedata(RECEIVER, port, ip);
-    printf("Reciever\n\tConnecting");
+    printf("Reciever\n\tConnecting\n");
     assert_num(connect(socket, (SOCKADDR*) &channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied",WSAGetLastError());
 
     receiver_stats = (stats*)calloc(1, sizeof(stats));
@@ -116,6 +116,8 @@ int main(int argc, char* argv[]) {
     // ask for file
     printf("\tPlase enter file name\n");
     scanf_s("%s", filename, (unsigned int)sizeof(filename));
+    assert(filename != NULL, "FileName");
+    printf("got file: %s", filename);
 
     // file = fopen(filename, "wb");
     while (!strcmp(filename, "quit")) {
