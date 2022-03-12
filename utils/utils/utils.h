@@ -3,6 +3,8 @@
 #define UTILS
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define __STDC_LIB_EXT1__
+
 #include <conio.h>
 #include <errno.h>
 #include <math.h>
@@ -30,6 +32,12 @@
 #define P4_MASK from_binary("0001111000011110000111100001111")
 #define P8_MASK from_binary("0000000111111110000000011111111")
 #define P16_MASK from_binary("0000000000000001111111111111111")
+
+#define HC_SENDER_PORT 6342
+#define HC_SENDER_IP "132.66.16.33"
+#define HC_RECEIVER_PORT 6343
+#define HC_RECEIVER_IP "132.66.16.33"
+
 
 typedef struct sockaddr_in socketaddr;
 typedef char* str;

@@ -11,11 +11,6 @@
 #define DETERMINISTIC "-d"
 #define random_double() (double)(rand() / RAND_MAX)
 
-#define HC_SENDER_PORT 6342
-#define HC_SENDER_IP "132.66.16.33"
-#define HC_RECEIVER_PORT 6343
-#define HC_RECEIVER_IP "132.66.16.33"
-
 char CHANNEL_BUFFER[MAX_LENGTH];
 int TRANSFER_COUNTER = 0;
 int FLIPPED_COUNTER = 0;

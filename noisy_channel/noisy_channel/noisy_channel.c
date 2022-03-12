@@ -69,7 +69,7 @@ void pseudo_sender() {
     memset(&channel_addr, 0, sizeof(channel_addr));
     set_address(&channel_addr, HC_SENDER_PORT, HC_SENDER_IP);
     log_err("Pseudo-Sender is Connecting:");
-    assert_num(connect(socket, &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection failed", WSAGetLastError());
+    assert_num(connect(socket, (SOCKADDR*) &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection failed", WSAGetLastError());
     sprintf(buff, "Hello World!");
     status = write_socket(socket, buff, 13);
     log_err("Pseudo-Sender Sent Message:");
@@ -83,7 +83,7 @@ void pseudo_receiver() {
     SOCKET socket = create_socket();
     memset(&channel_addr, 0, sizeof(channel_addr));
     set_address(&channel_addr, HC_RECEIVER_PORT, HC_RECEIVER_IP);
-    assert(connect(socket, &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection failed");
+    assert(connect(socket, (SOCKADDR*) &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection failed");
     status = read_socket(socket, buff, MAX_LENGTH);
     log_err("Pseudo-Receiver Got Message:");
     log_err(buff);
@@ -113,17 +113,15 @@ int main(int argc, char* argv[]) {
     socketaddr receiver_sa, sender_sa;
 
     // INIT
-    // pseudo_receiver();
-    // pseudo_sender();
 
     // Channel <-> Sender
     while (not(sdp->open_channel)) {
-        Sleep(500);
+        Sleep(1000);
         counter++;
         if (counter == 4) {
-            log_err("channel used hard-coded IPs and ports");
-            update_sharedata(SENDER, HC_SENDER_PORT, HC_SENDER_IP);
-            update_sharedata(RECEIVER, HC_RECEIVER_PORT, HC_RECEIVER_IP);
+            //log_err("channel used hard-coded IPs and ports");
+            //update_sharedata(SENDER, HC_SENDER_PORT, HC_SENDER_IP);
+            //update_sharedata(RECEIVER, HC_RECEIVER_PORT, HC_RECEIVER_IP);
             break;
         }
     }
@@ -141,9 +139,9 @@ int main(int argc, char* argv[]) {
     // Channel <-> Server
 
     while (TRUE) {
-        accept(sender_socket, (socketaddr*)&sender_sa, NULL);
+        accept(sender_socket, (SOCKADDR*) &sender_sa, NULL);
         accept(receiver_socket, NULL, NULL);
-        pseudo_sender(); // debugggg
+        log_err("channel has accepted both sockets");
         FD_ZERO(&sender_fds);
         FD_ZERO(&receiver_fds);
         FD_SET(sender_socket, &sender_fds);

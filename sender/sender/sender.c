@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
     FILE* file;
     char* ip = argv[1];
 	int port = atoi(argv[2]);
-	char* filename;
+    char* filename = calloc(MAX_LENGTH, sizeof(char));
     char decoded_msg[DECODED];
     char encoded_msg[ENCODED];
     int err;
@@ -18,10 +18,10 @@ int main(int argc, char* argv[]) {
 	memset(&channel_addr, 0, sizeof(channel_addr));
 	set_address(&channel_addr, port, ip);
     update_sharedata(SENDER, port, ip);
-    assert(connect(socket,&channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied");
+    assert(connect(socket, (SOCKADDR*) &channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied");
     //ask for file
     printf("Please enter file name\n");
-    scanf_s("%s", &filename);
+    scanf_s("%s", filename, (unsigned int)sizeof(filename));
     //file = fopen(filename, "rb"); 
 
     while (!strcmp(filename, "quit")){
@@ -54,11 +54,11 @@ int main(int argc, char* argv[]) {
 	    //memset(&channel_addr, 0, sizeof(channel_addr));
 	    //set_address(&channel_addr, port, ip);
         socket = create_socket();
-        assert(connect(socket,&channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied");
+        assert_num(connect(socket, (SOCKADDR*) &channel_addr,sizeof(channel_addr))!=SOCKET_ERROR,"connection falied",WSAGetLastError());
 
         //ask for new filename (if "quit" - close the socket)
         printf("Plase enter file name\n");
-        scanf_s("%s", &filename);
+        scanf_s("%s", filename, (unsigned int)sizeof(filename));
     }
     //cleanup
     shutdown(socket,SD_BOTH);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     returns 31 bits message*/
 void hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]){
     char check_bits[PARITY_BITS]; 
-    parity_bits(decoded_msg[DECODED],check_bits[PARITY_BITS]);
+    parity_bits(decoded_msg,check_bits);
     int j = 0;
     for(int i = 0; i < ENCODED; i++){
         switch (i)
@@ -131,7 +131,7 @@ void hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]){
 
 // TODO
 int print_output(){
-    
+    return 0;
 }
 
 void update_buffer(char encoded_msg[ENCODED], SOCKET socket, socketaddr addr){
@@ -141,7 +141,7 @@ void update_buffer(char encoded_msg[ENCODED], SOCKET socket, socketaddr addr){
     buff_current_size += ENCODED;
     if (buff_current_size > MAX_LENGTH - ENCODED){
         Sleep(50); // ???
-        write_socket(socket, &addr, SENDER_BUFFER, buff_current_size);
+        write_socket(socket, SENDER_BUFFER, buff_current_size);
         buff_current_size = 0;
     }
  

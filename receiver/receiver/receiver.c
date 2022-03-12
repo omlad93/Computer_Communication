@@ -41,9 +41,9 @@ void fix_hamming_substring(int start, char substring[ENCODED], char fixed_msg[MA
     // exctract data bits
     char data[DECODED];
     char check_bits[PARITY_BITS];
-    get_msg_data_bits(substring[ENCODED], data[DECODED]);
+    get_msg_data_bits(substring, data);
     // calc check bitas
-    parity_bits(data[DECODED], check_bits[PARITY_BITS]);
+    parity_bits(data, check_bits);
     // calc xor to get the error position
     error_pos[0] = substring[1] ^ check_bits[0];
     error_pos[1] = substring[2] ^ check_bits[1];
@@ -82,7 +82,7 @@ void fix_hamming_substring(int start, char substring[ENCODED], char fixed_msg[MA
 
 void respond_to_sender(SOCKET socket) {
     char msg[100];
-    sprintf_s(msg, "%d#%d#%d", receiver_stats->num_received, receiver_stats->num_written, receiver_stats->num_errors_fixed);
+    sprintf_s(msg,sizeof(msg), "%d %d %d", receiver_stats->num_received, receiver_stats->num_written, receiver_stats->num_errors_fixed);
     write_socket(socket, msg, 100);
 }
 
@@ -96,11 +96,11 @@ int main(int argc, char* argv[]) {
     FILE* file;
     char* ip = argv[1];
     int port = atoi(argv[2]);
-    char* filename;
+    char* filename = calloc(MAX_LENGTH, sizeof(char));
     char msg[MAX_LENGTH];
     char fixed_msg[MAX_LENGTH];
     int status = 0;
-    int size, err;
+    int err;
 
     // create a socket
     socketaddr channel_addr;
@@ -108,13 +108,13 @@ int main(int argc, char* argv[]) {
     memset(&channel_addr, 0, sizeof(channel_addr));
     set_address(&channel_addr, port, ip);
     update_sharedata(RECEIVER, port, ip);
-    assert(connect(socket, &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection falied");
+    assert_num(connect(socket, (SOCKADDR*) &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection falied",WSAGetLastError());
 
     receiver_stats = (stats*)calloc(1, sizeof(stats));
     received_msg_size = 0;
     // ask for file
     printf("Plase enter file name\n");
-    scanf_s("%s", &filename);
+    scanf_s("%s", filename, (unsigned int)sizeof(filename));
 
     // file = fopen(filename, "wb");
     while (!strcmp(filename, "quit")) {
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         // read message
-        status = read_socket(socket, &channel_addr, RECEIVER_BUF, MAX_LENGTH);
+        status = read_socket(socket, RECEIVER_BUF, MAX_LENGTH);
         received_msg_size += status;
         // encode hamming message
         fix_hamming_message(msg, fixed_msg, received_msg_size);
@@ -144,11 +144,11 @@ int main(int argc, char* argv[]) {
 
         // open new socket and connect
         socket = create_socket();
-        assert(connect(socket, &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection falied");
+        assert(connect(socket, (SOCKADDR*) &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection falied");
 
         // ask for new filename (if "quit" - close the socket)
         printf("Plase enter file name\n");
-        scanf_s("%s", &filename);
+        scanf_s("%s", filename, (unsigned int)sizeof(filename));
     }
 
     // cleanup
