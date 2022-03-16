@@ -17,8 +17,6 @@ void update_sharedata(int source, int port, str ip) {
         sdp->sender_ready = TRUE;
         sprintf(sdp->sender_ip, ip);
     }
-    assert(ip != NULL, "IP IS NULL");
-    printf("%s updated Shared Data\n", m);
     sdp->open_channel = sdp->sender_ready & sdp->receiver_ready;
 }
 
@@ -172,39 +170,27 @@ int bind_socket(SOCKET s, socketaddr* addr) {
 }
 
 /*
-    Function fot Reading information from socket
-    reads at most `size` bytes
-    reads all data that can be read from socket
+    Function for Reading information from socket
+    reads `size` bytes (all data from socket)
     information is saved in `data` vairable
-    returns size of actual bytes that read from socket
+    returns size in bytes that read from socket
     asserting no error occurred
 */
 int read_socket(SOCKET s, str data, int size) {
-
-    char message[45];  
     int res = recv(s, data, size, 0);
     assert(res==size, "Receiveing Failed");
-    sprintf(message, "\tread_socket(): Read %d / %d Bytes", res, size);
-    log_err(message);
     return res;
 }
 
 /*
-    Function fot Writing information to socket
-    writes at most `size` bytes
-    writes all data from buffer
+    Function for Writing information to socket
+    writes `size` bytes (all data from buffer)
     information is written from `data` vairable
-    returns size of actual bytes that read from socket
+    returns size in bytes that wrote to socket
     asserting no error occurred
 */
 int write_socket(SOCKET s, str data, int size) {
-    // finish when res == size
-    int res=0,addition = 0;
-    char message[45];
-    res = send(s, data, size, 0);
+    int res= send(s, data, size, 0);
     assert(res == size, "Sending Failed");
-    sprintf(message, "\twrite_socket(): wrote %d / %d Bytes", res, size);
-    assert_num(res == size, "write_socket wrote too much bytes", res);
-    log_err(message);
     return res;
 }

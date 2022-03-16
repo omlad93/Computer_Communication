@@ -6,14 +6,14 @@
 
 #include <winsock2.h>
 #include "../../utils/utils/utils.h"
+#include <time.h>
+#include <io.h>
+#include <stdio.h>
+#include <sys/types.h>
 
 #define RANDOMIZE "-r"
 #define DETERMINISTIC "-d"
-#define random_double() (double)(rand() / RAND_MAX)
-
-char CHANNEL_BUFFER[MAX_LENGTH];
-int TRANSFER_COUNTER = 0;
-int FLIPPED_COUNTER = 0;
+#define random_double() (rand() / RAND_MAX)
 
 typedef struct Noise {
     str type;
@@ -33,17 +33,17 @@ void generate_noise(Noise_p noise, str noise_type, int a1, int a2);
     apply determinstic noise on transmitted data
     Called by apply_noise(...)
 */
-void apply_deterministic(Noise_p noise, str data, int size);
+void apply_deterministic(Noise_p noise, str data, int size, int verbose);
 
 /*
     apply randomize noise on transmitted data
     Called by apply_noise(...)
 */
-void apply_randomized(Noise_p noise, str data, int size);
+void apply_randomized(Noise_p noise, str data, int size, int verbose);
 
 /*
     apply noise on incoming data, according to noise model
 */
-int apply_noise(Noise_p noise, str data, int size);
+void apply_noise(Noise_p noise, str data, int size, int verbose);
 
 #endif

@@ -82,7 +82,7 @@ void fix_hamming_substring(int start, char substring[ENCODED], char fixed_msg[MA
 
 void respond_to_sender(SOCKET socket) {
     char msg[100];
-    sprintf_s(msg,sizeof(msg), "%d %d %d", receiver_stats->num_received, receiver_stats->num_written, receiver_stats->num_errors_fixed);
+    sprintf_s(msg, sizeof(msg), "%d %d %d", receiver_stats->num_received, receiver_stats->num_written, receiver_stats->num_errors_fixed);
     write_socket(socket, msg, 100);
 }
 
@@ -96,9 +96,11 @@ int main(int argc, char* argv[]) {
     FILE* file;
     char* ip = argv[1];
     int port = atoi(argv[2]);
-    char* filename = calloc(MAX_LENGTH, sizeof(char));
-    char msg[MAX_LENGTH];
-    char fixed_msg[MAX_LENGTH];
+    int message_size_int;
+    char filename[MAX_LENGTH];
+    // char msg[MAX_LENGTH];
+    char message_size_str[SHORT_MESSAGE];
+    // char fixed_msg[MAX_LENGTH];
     int status = 0;
 
     // create a socket
@@ -106,38 +108,42 @@ int main(int argc, char* argv[]) {
     SOCKET socket = create_socket();
     memset(&channel_addr, 0, sizeof(channel_addr));
     set_address(&channel_addr, HC_RECEIVER_PORT, HC_RECEIVER_IP);
-    //update_sharedata(RECEIVER, port, ip);
-    printf("Reciever\n\tConnecting\n");
-    assert_num(connect(socket, (SOCKADDR*) &channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied",WSAGetLastError());
+    // update_sharedata(RECEIVER, port, ip);
+    assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied", WSAGetLastError());
 
     receiver_stats = (stats*)calloc(1, sizeof(stats));
     received_msg_size = 0;
     // ask for file
-    printf("\tPlase enter file name\n");
-    //scanf_s("%s", filename, (unsigned int)sizeof(filename));
-    //assert(filename != NULL, "FileName");
+    printf("Plase enter file name\n");
+    // scanf_s("%s", filename, (unsigned int)sizeof(filename));
+    // assert(filename != NULL, "FileName");
 
     strcpy(filename, HC_OUTPUT);
-    printf("got file: %s\n", filename);
 
     // file = fopen(filename, "wb");
-    while (!strcmp(filename, "quit")) {
 
-        assert(fopen_s(&file, filename, "rb") == 0, "Error in openning file\n");
+    while (strcmp(filename, "quit") != 0) {
+        assert(fopen_s(&file, filename, "w") == 0, "Error in opening file\n");
+        printf("\tWriting file: %s According to Data Received from the Noisy-Channel \n", filename);
+
         // read message
-        status = read_socket(socket, RECEIVER_BUF, MAX_LENGTH);
-        received_msg_size += status;
+        status = read_socket(socket, message_size_str, SHORT_MESSAGE);
+        message_size_int = atoi(message_size_str);
+        status = read_socket(socket, RECEIVER_BUF, message_size_int);
+        printf("\tGot message from socket (Channel) [%dB]\n", message_size_int);
         // encode hamming message
-        fix_hamming_message(msg, fixed_msg, received_msg_size);
+        // fix_hamming_message(msg, fixed_msg, status);
+        // printf("\tfixed hamming\n");
         // write the received message to file
-        update_receiver_file(file, msg);
-        // write the received message to file
+        update_receiver_file(file, RECEIVER_BUF);
+        // printf("\tWrote file\n");
+        //  write the received message to file
 
         // sends a respond
-        //respond_to_sender(socket);
+        // respond_to_sender(socket);
 
         // print to file
-        //print_receiver_file();
+        // print_receiver_file();
 
         closesocket(socket);
         WSACleanup();
@@ -145,13 +151,13 @@ int main(int argc, char* argv[]) {
 
         // open new socket and connect
         socket = create_socket();
-        assert(connect(socket, (SOCKADDR*) &channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection falied");
+        assert(connect(socket, (SOCKADDR*)&channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection falied");
 
         // ask for new filename (if "quit" - close the socket)
-        printf("\tPlase enter file name\n");
-        assert(scanf("%s", filename) != 0, "Scanning Failed");
+        printf("Please enter file name\n");
+        assert(scanf("%s\n", filename) != 0, "Scanning Failed");
     }
-
+    printf("I'm Out!\n");
     // cleanup
     shutdown(socket, SD_BOTH);
     closesocket(socket);

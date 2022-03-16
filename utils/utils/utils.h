@@ -11,9 +11,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/timeb.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <winsock2.h>
 
 #define not(x) (!x)
@@ -26,7 +26,14 @@
 #define ENCODED 31
 #define PARITY_BITS 5
 #define MAX_LENGTH 1993
+#define SHORT_MESSAGE 10
 #define FAIL -1
+
+#define BITS_PER_BITE 8
+#define BIT_FLIP_R(character, i) (character ^ (1 << i))   // flip the ith bit from right in character
+#define BIT_SET1_R(character, i) (character | (1 << i))   // Set the ith bit from right in character to 1
+#define BIT_SET0_R(character, i) (character & ~(1 << i))  // Set the ith bit from right in character to 0
+#define BIT_EVAL_R(character, i) ((character >> i) & 1)   // Get the ith bit from right in character
 
 #define P1_MASK from_binary("1010101010101010101010101010101")
 #define P2_MASK from_binary("0110011001100110011001100110011")
@@ -38,8 +45,10 @@
 #define HC_SENDER_IP "127.0.0.1"
 #define HC_RECEIVER_PORT 6343
 #define HC_RECEIVER_IP "127.0.0.1"
-#define HC_INPUT "input.bin"
-#define HC_OUTPUT "output.bin"
+// #define HC_INPUT "input.bin"
+// #define HC_OUTPUT "output.bin"
+#define HC_INPUT "input.txt"
+#define HC_OUTPUT "output.txt"
 
 typedef struct sockaddr_in socketaddr;
 typedef char* str;
@@ -86,8 +95,6 @@ typedef struct sharedData {
 } SharedData;
 typedef SharedData* SDP;
 SharedData sd;
-// SDP sdp = &sd;
-// memset(sdp, 0, sizeof(dp));
 
 /*
     Updated Ports & IPs after socket creation

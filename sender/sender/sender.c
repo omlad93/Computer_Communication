@@ -3,44 +3,58 @@
 
 int main(int argc, char* argv[]) {
     FILE* file;
+    int message_size_int;
     char* ip = argv[1];
 	int port = atoi(argv[2]);
     char filename[MAX_LENGTH];
+    char size_message[SHORT_MESSAGE];
     char decoded_msg[DECODED];
     char encoded_msg[ENCODED];
     //char *total_encoded_msg[];
-
     //create a socket
     socketaddr channel_addr;
     SOCKET socket = create_socket();
 	memset(&channel_addr, 0, sizeof(channel_addr));
 	set_address(&channel_addr, HC_SENDER_PORT, HC_SENDER_IP);
-    // update_sharedata(SENDER, port, ip);
-    printf("Sender\n\tConnecting\n");
     assert_num(connect(socket, (SOCKADDR*) &channel_addr,sizeof(struct sockaddr))!=SOCKET_ERROR,"connection falied", WSAGetLastError());
+
     //ask for file
-    printf("\tPlease enter file name\n");
+    printf("Please enter file name\n");
+
     //scanf_s("%s", filename, (unsigned int)sizeof(filename));
     //file = fopen(filename, "rb"); 
     strcpy(filename, HC_INPUT);
-    printf("got file: %s\n", filename);
+    
 
     while (strcmp(filename, "quit") != 0){
-        assert(fopen_s(&file, filename, "rb")==0,"Error in openning file\n");
- 
-        //loop over the file
-        buff_current_size = 0;
-        while(fread(encoded_msg, 1, 26, file) > 0){
-            //apply hamming code
-            hamming(decoded_msg, encoded_msg);
-            update_buffer(encoded_msg, socket, channel_addr);
-            log_err("\treading file");
-        }
-        printf("\tSender Read File: buffer size is %d\n",buff_current_size);
-        
-        //send
-        write_socket(socket, SENDER_BUFFER, buff_current_size);
 
+        assert(fopen_s(&file, filename, "r")==0,"Error in openning file\n");
+        printf("\tSending file: %s to Receiver Through the Noisy-Channel \n", filename);
+        //loop over the file
+        //buff_current_size = 0;
+        //while(fread(encoded_msg, 1, 26, file) > 0){
+        //    //apply hamming code
+        //    hamming(decoded_msg, encoded_msg);
+        //    update_buffer(encoded_msg, socket, channel_addr);
+        //    log_err("\treading file");
+        //}
+        //printf("\tSender Read File: buffer size is %d\n",buff_current_size);
+        
+
+        /*
+        SKIPPING HAMMING : @Iris
+        make sure to save this interface in the loop :
+            since I skipped hamming: the number of bytes that have been read from file to SENDER_BUFFER is the number of bytes written to socket
+            after applying hamming: 'message_size_int' should be the nuber of bytes to send.
+        */
+        message_size_int = fread(SENDER_BUFFER, sizeof(char), MAX_LENGTH, file);
+
+
+        // Send to Channel: Size + Message
+        itoa(message_size_int, size_message,10);
+        write_socket(socket, size_message, SHORT_MESSAGE); // Sending Message Size
+        write_socket(socket, SENDER_BUFFER, message_size_int); // Sending Actual Message
+        printf("\tSent message to socket (Channel) [%dB]\n", message_size_int);
         //wait for an answer
         //socket =  read_socket(socket, SENDER_BUFFER, MAX_LENGTH);
 
@@ -56,7 +70,7 @@ int main(int argc, char* argv[]) {
         socket = create_socket();
         assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied", WSAGetLastError());
         //ask for new filename (if "quit" - close the socket)
-        printf("\tPlase enter file name\n");
+        printf("Plase enter file name\n");
         assert(scanf("%s", filename) != 0, "Scanning Failed");
     }
     log_err("\tFinished");
