@@ -12,11 +12,20 @@
 
 //#define _CRT_SECURE_NO_WARNINGS
 
-char SENDER_BUFFER[MAX_LENGTH];
+char MESSEGE_BUFFER[MAX_LENGTH];
+char* SENDER_BUFFER;
+
 //char RECEIVER_BUFFER[MAX_LENGTH];
 int buff_current_size;
 //int receiver_index;
 
+uint32_t convert_msg_to_int(char* msg);
+
+void convert_msg_to_string(char* encoded_msg, uint32_t encoded_msg_int);
+
+int get_msg_size(FILE* file);
+
+void message_hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]);
 
 void hamming(char* decoded_msg, char* encoded_msg);
 

@@ -25,16 +25,20 @@ stats *receiver_stats;
 
 int received_msg_size;
 
-char RECEIVER_BUF[MAX_LENGTH];
+char* RECEIVER_BUF;
 
 void update_receiver_file(FILE *file, char *msg);
 
 void fix_hamming_message(char msg[MAX_LENGTH], char fixed_msg[MAX_LENGTH], int msg_size);
 
-void fix_hamming_substring(int start, char msg[MAX_LENGTH], char fixed_msg[MAX_LENGTH]);
+uint32_t fix_hamming_substring(uint32_t int_msg);
+
+void add_stripped_substring_to_buffer(char fixed_msg[MAX_LENGTH], int fixed_msg_int, int start);
 
 void calc_curr_substring(int start, char msg[MAX_LENGTH], char substring[ENCODED]);
 
 void print_receiver_output();
+
+uint32_t convert_msg_to_int(char* msg);
 
 void respond_to_sender(SOCKET socket);
