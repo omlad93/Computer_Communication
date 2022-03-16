@@ -1,5 +1,5 @@
 // #pragma once
-#ifndef UTIULS
+#ifndef UTILS
 #define UTILS
 // #define _CRT_SECURE_NO_WARNINGS
 // #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -29,7 +29,7 @@
 #define SHORT_MESSAGE 10
 #define FAIL -1
 
-#define BITS_PER_BITE 8
+#define BITS_PER_BYTE 8
 #define BIT_FLIP_R(character, i) (character ^ (1 << i))   // flip the ith bit from right in character
 #define BIT_SET1_R(character, i) (character | (1 << i))   // Set the ith bit from right in character to 1
 #define BIT_SET0_R(character, i) (character & ~(1 << i))  // Set the ith bit from right in character to 0
@@ -41,15 +41,12 @@
 #define P8_MASK from_binary("0000000111111110000000011111111")
 #define P16_MASK from_binary("0000000000000001111111111111111")
 
+// HARD CODED SHORTCUTS
 #define IP0 "0.0.0.0"
-
-// TO BE REMOVED
 #define HC_SENDER_PORT 6342
 #define HC_SENDER_IP "127.0.0.1"
 #define HC_RECEIVER_PORT 6343
 #define HC_RECEIVER_IP "127.0.0.1"
-// #define HC_INPUT "input.bin"
-// #define HC_OUTPUT "output.bin"
 #define HC_INPUT "input.txt"
 #define HC_OUTPUT "output.txt"
 
@@ -87,7 +84,6 @@ inline void assert_num(int condition, str message, int err_idx) {
     }
 }
 
-
 /*
     Updated Ports & IPs after socket creation
     So Channel will have information
@@ -104,9 +100,9 @@ int calc_hamming_bit(int pos, char encoded_msg[ENCODED]);
 int parity(int val, int mask);
 
 /*
-    Extarcts only the data bits from the encoded message
+    Extracts only the data bits from the encoded message
 */
-void get_msg_data_bits(char encoded_data[ENCODED], char sripped_data[DECODED]);
+void get_msg_data_bits(char encoded_data[ENCODED], char stripped_data[DECODED]);
 
 /*
     A function that return char[idx]
@@ -183,15 +179,5 @@ int read_socket(SOCKET socket, str data, int size);
     asserting no error occurred
 */
 int write_socket(SOCKET socket, str data, int size);
-
-/*
-    A loop of waiting for information on socket
-    when there is information read it to `data` variable
-    return value is length of data read
-    can be called again for new file
-    if called again can be terminated nicely using `quit` as filename
-    Can be moved to server.c !
-*/
-int server_loop(SOCKET socket, socketaddr* addr, str data, int size);
 
 #endif

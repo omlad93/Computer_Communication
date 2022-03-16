@@ -13,13 +13,14 @@ void generate_noise(Noise_p noise, str noise_type, int a1, int a2) {
         srand(a2);
         noise->seed = a2;
         noise->probability = a1 / pow(2.0, 16.0);
-        printf("\t Generated Noise: Random with p=%f%%\n", 100 * noise->probability);
+        printf("\tGenerated Noise: Random(%f%%) with seed=%d\n", 100 * noise->probability, noise->seed);
     } else {
         noise->type = DETERMINISTIC;
         noise->n = a1;
-        printf("\t Generated Noise: Deterministic with n=%d\n", noise->n);
+        printf("\tGenerated Noise: Deterministic(%d)\n", noise->n);
     }
     noise->flipped = 0;
+    noise->transmitted = 0;
 }
 
 /*
@@ -30,16 +31,16 @@ void apply_deterministic(Noise_p noise, str data, int size, int verbose) {
     int next_noised_bit = noise->n - 1;
     int bit_to_flip;  // idx of bit to flip (from r)
     if (verbose) {
-        printf("Applying Noise on a %d bytes [%d bits] message: Excpecting ~%d flips\n", size, size * BITS_PER_BITE, (int)size * BITS_PER_BITE / noise->n);
+        printf("Applying Noise on a %d bytes [%d bits] message: Excpecting ~%d flips\n", size, size * BITS_PER_BYTE, (int)size * BITS_PER_BYTE / noise->n);
     }
     for (int i = 0; i < size; i++) {
-        if ((int)next_noised_bit / BITS_PER_BITE == i) {
-            bit_to_flip = BITS_PER_BITE - (next_noised_bit % BITS_PER_BITE);
+        if ((int)next_noised_bit / BITS_PER_BYTE == i) {
+            bit_to_flip = BITS_PER_BYTE - (next_noised_bit % BITS_PER_BYTE);
             data[i] = BIT_FLIP_R(data[i], bit_to_flip);
             next_noised_bit += noise->n;
             noise->flipped++;
             if (verbose) {
-                printf("%d) flipped bit %d\n", noise->flipped, i * BITS_PER_BITE + BITS_PER_BITE - bit_to_flip);
+                printf("%d) flipped bit %d\n", noise->flipped, i * BITS_PER_BYTE + BITS_PER_BYTE - bit_to_flip);
             }
         }
     }
@@ -52,20 +53,19 @@ void apply_deterministic(Noise_p noise, str data, int size, int verbose) {
 void apply_randomized(Noise_p noise, str data, int size, int verbose) {
     int flipping, bit_to_flip;  // should flip, idx of bit to flip (from r);
     float rnd;
-    srand((unsigned int)time(NULL));
     if (verbose) {
-        printf("Applying Noise on a %d bytes [%d bits] message: Excpecting ~%d flips\n", size, size * BITS_PER_BITE, (int)(size * BITS_PER_BITE * noise->probability));
+        printf("Applying Noise on a %d bytes [%d bits] message: Excpecting ~%d flips\n", size, size * BITS_PER_BYTE, (int)(size * BITS_PER_BYTE * noise->probability));
     }
     for (int i = 0; i < size; i++) {
-        for (int j = 0; j < BITS_PER_BITE; j++) {
+        for (int j = 0; j < BITS_PER_BYTE; j++) {
             rnd = (float)(rand()) / (float)(RAND_MAX);
             flipping = rnd <= noise->probability;
             if (flipping) {
-                bit_to_flip = BITS_PER_BITE - j;
+                bit_to_flip = BITS_PER_BYTE - j;
                 data[i] = BIT_FLIP_R(data[i], bit_to_flip);
-                noise->flipped = flipping ? noise->flipped + 1 : noise->flipped;
+                noise->flipped++;
                 if (verbose) {
-                    printf("%d) flipped bit %d (randomly choosed %f)\n", noise->flipped, i * BITS_PER_BITE + j, rnd);
+                    printf("%d) flipped bit %d\n", noise->flipped, i * BITS_PER_BYTE + j);
                 }
             }
         }
@@ -81,15 +81,29 @@ void apply_noise(Noise_p noise, str data, int size, int verbose) {
     } else {
         apply_deterministic(noise, data, size, verbose);
     }
+    noise->transmitted += size;
 }
 
-void initial_setup(SOCKET listen_socket_sender, socketaddr* sender_sa_p, SOCKET listen_socket_receiver, socketaddr* receiver_sa_p) {
-    set_address(sender_sa_p, HC_SENDER_PORT, IP0);
-    set_address(receiver_sa_p, HC_RECEIVER_PORT, IP0);
+/*
+set up sockets (assign ports, bind,listten)
+if in hard_coded mode use HC_PORT_<CLIENT> instead of free ports.
+*/
+void initial_setup(SOCKET listen_socket_sender, socketaddr* sender_sa_p, SOCKET listen_socket_receiver, socketaddr* receiver_sa_p, int hard_coded) {
+    int sender_port = hard_coded ? HC_SENDER_PORT : 0;
+    int receiver_port = hard_coded ? HC_RECEIVER_PORT : 0;
+    set_address(sender_sa_p, sender_port, IP0);
+    set_address(receiver_sa_p, receiver_port, IP0);
     bind_socket(listen_socket_sender, sender_sa_p);
     bind_socket(listen_socket_receiver, receiver_sa_p);
+    int addlen = sizeof(SOCKADDR);
+    assert_num(getsockname(listen_socket_sender, (SOCKADDR*)sender_sa_p, &addlen) == 0,
+               "Couldn't get Port for Sender", WSAGetLastError());
+    printf("Socket for Sender:   IP='0.0.0.0' [local] , Port=%d\n", sender_port);
+    assert_num(getsockname(listen_socket_receiver, (SOCKADDR*)receiver_sa_p, &addlen) == 0,
+               "Couldn't get Port for Receiver", WSAGetLastError());
+    printf("Socket for Receiver: IP='0.0.0.0' [local] , Port=%d\n", receiver_sa_p->sin_port);
     assert_num(listen(listen_socket_sender, SOMAXCONN) == 0, "listening to sender Returned non-zero", WSAGetLastError());
-    assert_num(listen(listen_socket_receiver, SOMAXCONN) == 0, "listening to reciever Returned non-zero", WSAGetLastError());
+    assert_num(listen(listen_socket_receiver, SOMAXCONN) == 0, "listening to receiver Returned non-zero", WSAGetLastError());
 }
 
 void channel_selection(SOCKET sender_socket, SOCKET receiver_socket, fd_set* sender_fds_p, fd_set* receiver_fds_p) {
@@ -104,10 +118,6 @@ void channel_selection(SOCKET sender_socket, SOCKET receiver_socket, fd_set* sen
 }
 
 int main(int argc, char* argv[]) {
-    /* Questions:
-     * who supplies IP for server and sender?
-     * Who supplies self port?
-     */
     int a1, a2, message_size_int, size = 0, write_size = 0;
     int counter = 0;
     str noise_type, channel_buffer;
@@ -119,16 +129,14 @@ int main(int argc, char* argv[]) {
     a1 = atoi(argv[2]);
     a2 = (argc == 4) ? atoi(argv[3]) : 0;
     Noise_p noise = (Noise_p)(calloc(1, sizeof(Noise)));
-    generate_noise(noise, noise_type, a1, a2);
     fd_set sender_fds, receiver_fds;
     socketaddr receiver_sa, sender_sa;
     SOCKET listen_socket_sender = create_socket();
     SOCKET listen_socket_receiver = create_socket();
     SOCKET sender_socket, receiver_socket;
     // INIT
-    initial_setup(listen_socket_sender, &sender_sa, listen_socket_receiver, &receiver_sa);
-    // Channel <-> Sender
-
+    initial_setup(listen_socket_sender, &sender_sa, listen_socket_receiver, &receiver_sa, TRUE);
+    generate_noise(noise, noise_type, a1, a2);
     while (strcmp(user_command, "no") != 0) {
         // Initiation
         sender_socket = accept(listen_socket_sender, NULL, NULL);
@@ -143,7 +151,7 @@ int main(int argc, char* argv[]) {
         printf("\tReceived message from socket (Sender) [%dB]\n", message_size_int);
 
         //  Apply Noise
-        apply_noise(noise, channel_buffer, size, TRUE);
+        apply_noise(noise, channel_buffer, size, FALSE);
 
         // Write to Receiver:
         write_size = write_socket(receiver_socket, message_size_str, SHORT_MESSAGE);   // ADD SIZE PARSING
@@ -153,16 +161,17 @@ int main(int argc, char* argv[]) {
         closesocket(receiver_socket);
         closesocket(sender_socket);
         do {
-            log_err("countine?");
+            log_err("continue?");
             assert(scanf("%s", user_command) != 0, "Scanning Failed");
             if (not(strcmp(user_command, "yes"))) break;
             if (not(strcmp(user_command, "no"))) break;
         } while (TRUE);
     }
+    printf("\tTransffered %d Bytes, Applied Noise on %d bits (%f%% from all bits)\n",
+           noise->transmitted, noise->flipped, 100 * (float)noise->flipped / (float)(BITS_PER_BYTE * noise->transmitted));
     free(noise);
     closesocket(listen_socket_sender);
     closesocket(listen_socket_receiver);
     WSACleanup();
-    printf("Read %d Bytes and Wrote %d Bytes, Applied Noise on %d bits\n", size, write_size, noise->flipped);
     return 0;
 }
