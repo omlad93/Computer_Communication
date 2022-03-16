@@ -134,7 +134,7 @@ SOCKET create_socket() {
 */
 void set_address(socketaddr* addr, int port, str ip) {
     addr->sin_family = AF_INET;
-    addr->sin_port = htons(port);
+    addr->sin_port = port;
     addr->sin_addr.s_addr = (ip == NULL) ? htonl(INADDR_ANY) : inet_addr(ip);
 }
 

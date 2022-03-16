@@ -21,6 +21,7 @@ typedef struct Noise {
     int seed;
     double probability;
     int flipped;
+    int transmitted;
 } Noise;
 typedef Noise* Noise_p;
 
