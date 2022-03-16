@@ -1,24 +1,5 @@
 #include "utils.h"
 
-/*
-    Updated Ports & IPs after socket creation
-    So Channel will have information
-*/
-void update_sharedata(int source, int port, str ip) {
-    SDP sdp = &sd;
-    str m = (source == RECEIVER) ? "Receiver" : "Sender";
-    if (source == RECEIVER) {
-        sdp->receiver_port = port;
-        sdp->receiver_ready = TRUE;
-        sprintf(sdp->receiver_ip, ip);
-        // sdp->receiver_ip = ip;
-    } else {
-        sdp->sender_port = port;
-        sdp->sender_ready = TRUE;
-        sprintf(sdp->sender_ip, ip);
-    }
-    sdp->open_channel = sdp->sender_ready & sdp->receiver_ready;
-}
 
 /* calculates the hamming parity bit in pos - 1 */
 int calc_hamming_bit(int pos, char encoded_msg[ENCODED]) {
@@ -82,9 +63,6 @@ char get_bit_from_char(char c, int idx) {
     return wanted_bit;
 }
 
-// void get_next_bits(str data, char res[PARITY_BITS], int idx, int bit_count) {
-// }
-
 /*
     TODO: Document
 */
@@ -131,6 +109,7 @@ char flip(char c, int idx) {
 }
 
 // Sockets Utility Functions
+// Wrapers for winsock functions
 
 /*
     Returns a new Socket

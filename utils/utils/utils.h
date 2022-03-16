@@ -41,6 +41,9 @@
 #define P8_MASK from_binary("0000000111111110000000011111111")
 #define P16_MASK from_binary("0000000000000001111111111111111")
 
+#define IP0 "0.0.0.0"
+
+// TO BE REMOVED
 #define HC_SENDER_PORT 6342
 #define HC_SENDER_IP "127.0.0.1"
 #define HC_RECEIVER_PORT 6343
@@ -84,17 +87,6 @@ inline void assert_num(int condition, str message, int err_idx) {
     }
 }
 
-typedef struct sharedData {
-    int receiver_port;
-    int receiver_ready;
-    char receiver_ip[15];
-    int sender_port;
-    int sender_ready;
-    char sender_ip[15];
-    int open_channel;
-} SharedData;
-typedef SharedData* SDP;
-SharedData sd;
 
 /*
     Updated Ports & IPs after socket creation

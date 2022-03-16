@@ -11,7 +11,7 @@ The main project (due to our definition) is `noisy_channel` but it can be config
 ## Initializion Process on Visual Studio Code  
 In order to be able to build the  `solution` properly, make sure to follow this steps:
 * add `Ws2_32.lib` to `Linker->Input->Additional Dependencies`  
-* add `_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS` to `C/C++->Preprocessor->Preprocessor Definitions` to avoid VS C limitations.  
+* add `_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;` to `C/C++->Preprocessor->Preprocessor Definitions` to avoid VS C limitations.  
 * add `../../utils/utils` to `C/C++->Additional Include Directories` (**no need on utils sub-solution**)  
 * Modify utils to be `.lib` (library): `General->Configuration Type->Static Library`  
 * Make sure that dependencies are defined for `noisy_channel` solutions & sub-projects:
