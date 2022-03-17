@@ -17,25 +17,24 @@ void update_receiver_file(FILE* file, char* msg) {
     Fixing each 26 bits
 */
 void fix_hamming_message(char* msg, char* fixed_msg, int msg_size) {
-    char substring[ENCODED] = { 0 };
-    //int j;
+    char substring[ENCODED] = {0};
+    // int j;
     uint32_t int_msg, fixed_msg_int;
     for (int i = 0; i < (msg_size / ENCODED); i++) {
         calc_curr_substring(i, msg, substring);
         int_msg = convert_msg_to_int(substring);
         fixed_msg_int = fix_hamming_substring(int_msg);
         receiver_stats->num_received += ENCODED;
-        add_stripped_substring_to_buffer(fixed_msg, fixed_msg_int, i*DECODED);
+        add_stripped_substring_to_buffer(fixed_msg, fixed_msg_int, i * DECODED);
     }
 }
 
 /* Updates fixed message buffer with stripped 26 bits */
-void add_stripped_substring_to_buffer(char* fixed_msg, int fixed_msg_int, int start){
+void add_stripped_substring_to_buffer(char* fixed_msg, int fixed_msg_int, int start) {
     for (int i = 0; i < DECODED; i++) {
         if ((fixed_msg_int >> i & 1)) {
             fixed_msg[start + i] = '1';
-        }
-        else {
+        } else {
             fixed_msg[start + i] = '0';
         }
     }
@@ -57,7 +56,7 @@ uint32_t convert_msg_to_int(char* msg) {
     int indx = 0;
     for (int i = 0; i < ENCODED; i++) {
         if (msg[i] == '1') {
-             (msg_int) |= (1 << (i));
+            (msg_int) |= (1 << (i));
         }
     }
     return msg_int;
@@ -81,32 +80,32 @@ uint32_t fix_hamming_substring(uint32_t int_msg) {
     uint32_t stripped = int_msg;
     // calc 15 parity bit
     parity_bit = parity(int_msg, 0x7FFF8000);
-    if (parity_bit) { //error was detected
+    if (parity_bit) {  // error was detected
         err = 1;
         err_index += (int)pow(2, 4);
     }
     // calc 7 parity bit
     parity_bit = parity(int_msg, 0x7F807F80);
-    if (parity_bit) { //error was detected
+    if (parity_bit) {  // error was detected
         err = 1;
         err_index += (int)pow(2, 3);
-    }    
+    }
     // calc 3 parity bit
     parity_bit = parity(int_msg, 0x38787878);
-    if (parity_bit) { //error was detected
+    if (parity_bit) {  // error was detected
         err = 1;
         err_index += (int)pow(2, 2);
-    }    
+    }
     // calc 1 parity bit
     parity_bit = parity(int_msg, 0x66666666);
-    if (parity_bit) { //error was detected
+    if (parity_bit) {  // error was detected
         err = 1;
         err_index += (int)pow(2, 1);
-    }    
+    }
     // calc 0 parity bit
     parity_bit = parity(int_msg, 0x55555555);
-    if (parity_bit) { 
-        //error was detected
+    if (parity_bit) {
+        // error was detected
         err = 1;
         err_index += (int)pow(2, 0);
     }
@@ -116,7 +115,6 @@ uint32_t fix_hamming_substring(uint32_t int_msg) {
     }
     return stripped;
 }
-
 
 void respond_to_sender(SOCKET socket) {
     char msg[100];
@@ -138,8 +136,9 @@ int main(int argc, char* argv[]) {
     char filename[MAX_LENGTH];
     char msg[MAX_LENGTH];
     char message_size_str[SHORT_MESSAGE];
-    char* fixed_msg; // NEED TO CHANGE THE SIZE
+    char* fixed_msg;  // NEED TO CHANGE THE SIZE
     int status = 0;
+    DWORD file_attr;
 
     // create a socket
     socketaddr channel_addr;
@@ -153,12 +152,10 @@ int main(int argc, char* argv[]) {
     received_msg_size = 0;
     // ask for file
     printf("RECEIVER\n");
-    printf("Plase enter file name\n");
-    // scanf_s("%s", filename, (unsigned int)sizeof(filename));
-    // assert(filename != NULL, "FileName");
+    printf("Please enter file name\n");
+    // assert(scanf("%s\n", filename) != 0, "Scanning Failed");
 
     strcpy(filename, HC_OUTPUT);
-
 
     while (strcmp(filename, "quit") != 0) {
         assert(fopen_s(&file, filename, "w") == 0, "Error in opening file\n");
@@ -206,7 +203,6 @@ int main(int argc, char* argv[]) {
         printf("Please enter file name\n");
         assert(scanf("%s\n", filename) != 0, "Scanning Failed");
     }
-    printf("I'm Out!\n");
     // cleanup
     shutdown(socket, SD_BOTH);
     closesocket(socket);

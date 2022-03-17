@@ -8,7 +8,7 @@ one for each module (Sender, Receiver, Noisy-Channel) and utils functions librar
 In this way each solution can be built and debugged independently but code can still be shared.  
 The main project (due to our definition) is `noisy_channel` but it can be configured differently.
 
-## Initialization Process on Visual Studio Code  
+## Initialization Process on Visual Studio  
 In order to be able to build the  `solution` properly, make sure to follow this steps:
 * add `Ws2_32.lib` to `Linker->Input->Additional Dependencies`  
 * add `_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;` to `C/C++->Preprocessor->Preprocessor Definitions` to avoid VS C limitations.  
@@ -33,7 +33,13 @@ In order to be able to build the  `solution` properly, make sure to follow this 
       using this, the destined user (channel and later the receiver) can allocate a buffer
     * the second message is the hamming-encoded file (with/without noise)
 * The ports are determined by the channel, which find available ports and assign them to the sockets.  
-  There is an option to use default ports (6342, 6343) for easy debugging (minor code modification)
+
+**ADDITIONAL FEATURE**:  
+In order to ise pre-defined ports by the channel (easier to debug) one can `--debug` argument  
+Using the additional argument will set the ports (that the channel is listening to) to the following:  
+6342 for the sender and 6343 for the receiver, allowing running all of executables in single click (after Initializing in VS)
+
+
 
 
 ## Utilities Function Module
@@ -100,6 +106,7 @@ The channel, which is the server on this project, have a simple functionality:
 1. receive message sent by the sender
 2. apply noise, according to user (command line) arguments
 3. send the noised message to the receiver
+
 
 The noise definition is implemented using the Noise struct and applied on the data using a single function:  
   ```C

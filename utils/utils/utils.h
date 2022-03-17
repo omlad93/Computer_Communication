@@ -15,10 +15,13 @@
 #include <sys/timeb.h>
 #include <sys/types.h>
 #include <winsock2.h>
+#include <fileapi.h>
 
 typedef __int32 int32_t;
 typedef unsigned __int32 uint32_t;
 
+#define and &&
+#define or ||
 #define not(x) (!x)
 #define xor (a, b)(a ^ b)
 #define from_binary(s) ((int)strtol(s, NULL, 2))
@@ -87,6 +90,8 @@ inline void assert_num(int condition, str message, int err_idx) {
     }
 }
 
+
+int file_exists(LPCTSTR path);
 /*
     Updated Ports & IPs after socket creation
     So Channel will have information

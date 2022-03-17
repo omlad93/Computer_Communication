@@ -98,7 +98,7 @@ void initial_setup(SOCKET listen_socket_sender, socketaddr* sender_sa_p, SOCKET 
     int addlen = sizeof(SOCKADDR);
     assert_num(getsockname(listen_socket_sender, (SOCKADDR*)sender_sa_p, &addlen) == 0,
                "Couldn't get Port for Sender", WSAGetLastError());
-    printf("Socket for Sender:   IP='0.0.0.0' [local] , Port=%d\n", sender_port);
+    printf("Socket for Sender:   IP='0.0.0.0' [local] , Port=%d\n", sender_sa_p->sin_port);
     assert_num(getsockname(listen_socket_receiver, (SOCKADDR*)receiver_sa_p, &addlen) == 0,
                "Couldn't get Port for Receiver", WSAGetLastError());
     printf("Socket for Receiver: IP='0.0.0.0' [local] , Port=%d\n", receiver_sa_p->sin_port);
@@ -123,8 +123,16 @@ int main(int argc, char* argv[]) {
     str noise_type, channel_buffer;
     char user_command[4] = {"yes"};
     char message_size_str[MAX_LENGTH];
-
-    assert_num((argc <= 4) & (argc > 1), "Noisy Channel Got Unexpected Numer og Arguments", argc);
+    double ratio;
+    assert_num((argc <= 5) & (argc >= 3), "Noisy Channel Got Unexpected Numer og Arguments", argc);
+    int debug_mode = FALSE;
+    if ((argc == 5) or ((argc==4) and (not(strcmp(argv[1],"-d"))))) {
+        
+        if (not(strcmp(argv[argc-1],"-debug"))) {
+            log_err("working on debug mode (Fixed Ports)");
+            debug_mode = TRUE;
+        }
+    }
     noise_type = argv[1];
     a1 = atoi(argv[2]);
     a2 = (argc == 4) ? atoi(argv[3]) : 0;
@@ -135,7 +143,7 @@ int main(int argc, char* argv[]) {
     SOCKET listen_socket_receiver = create_socket();
     SOCKET sender_socket, receiver_socket;
     // INIT
-    initial_setup(listen_socket_sender, &sender_sa, listen_socket_receiver, &receiver_sa, TRUE);
+    initial_setup(listen_socket_sender, &sender_sa, listen_socket_receiver, &receiver_sa, debug_mode);
     generate_noise(noise, noise_type, a1, a2);
     while (strcmp(user_command, "no") != 0) {
         // Initiation
@@ -167,8 +175,9 @@ int main(int argc, char* argv[]) {
             if (not(strcmp(user_command, "no"))) break;
         } while (TRUE);
     }
+    ratio = 100 * ((float)noise->flipped / (float)(BITS_PER_BYTE * noise->transmitted));
     printf("\tTransffered %d Bytes, Applied Noise on %d bits (%f%% from all bits)\n",
-           noise->transmitted, noise->flipped, 100 * (float)noise->flipped / (float)(BITS_PER_BYTE * noise->transmitted));
+           noise->transmitted, noise->flipped, ratio);
     free(noise);
     closesocket(listen_socket_sender);
     closesocket(listen_socket_receiver);

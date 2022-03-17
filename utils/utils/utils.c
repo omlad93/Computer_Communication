@@ -1,5 +1,9 @@
 #include "utils.h"
 
+int file_exists(LPCTSTR path) {
+    DWORD attr = GetFileAttributes(path);
+    return (attr != INVALID_FILE_ATTRIBUTES && !(attr & FILE_ATTRIBUTE_DIRECTORY));
+}
 
 /* calculates the hamming parity bit in pos - 1 */
 int calc_hamming_bit(int pos, char encoded_msg[ENCODED]) {
@@ -39,7 +43,7 @@ int parity(int val, int mask) {
     return (y & 1) ? TRUE : FALSE;
 }
 
-/*extarcts only the data bits from the encoded message*/
+/*extracts only the data bits from the encoded message*/
 void get_msg_data_bits(char encoded_data[ENCODED], char stripped_data[DECODED]) {
     int j = 0;
     for (int i = 0; i < ENCODED; i++) {
@@ -157,7 +161,7 @@ int bind_socket(SOCKET s, socketaddr* addr) {
 */
 int read_socket(SOCKET s, str data, int size) {
     int res = recv(s, data, size, 0);
-    assert(res==size, "Receiveing Failed");
+    assert(res == size, "Receiveing Failed");
     return res;
 }
 
@@ -169,7 +173,7 @@ int read_socket(SOCKET s, str data, int size) {
     asserting no error occurred
 */
 int write_socket(SOCKET s, str data, int size) {
-    int res= send(s, data, size, 0);
+    int res = send(s, data, size, 0);
     assert(res == size, "Sending Failed");
     return res;
 }
