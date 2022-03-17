@@ -71,6 +71,8 @@ The utilities library `utils` is composed from the functions needed by all three
    ```
    
 3. Bit Manipulation Functions
+   since the simple bit manipulation (flip, set0, set1, get) is defined ias macros
+   the bit-manipulation **functions** are mostly covering the hamming complex manipulation.
    
 4. Winsock2 Wrappers 
    for easy & clean use we wrote the function 
@@ -99,10 +101,6 @@ The channel, which is the server on this project, have a simple functionality:
 2. apply noise, according to user (command line) arguments
 3. send the noised message to the receiver
 
-When the channel is done with a transaction, it waits for user response for the question `continue?`:  
-if the user answer anything besides `yes` or `no` the question will appear again.  
-![continue?](./continue.jpg)
-
 The noise definition is implemented using the Noise struct and applied on the data using a single function:  
   ```C
   typedef struct Noise {
@@ -120,5 +118,10 @@ The noise definition is implemented using the Noise struct and applied on the da
   */
   void apply_noise(Noise_p noise, str data, int size, int verbose);
   ```
+
+When the channel is done with a transaction, it waits for user response for the question `continue?`.  
+if the user answer anything besides `yes` or `no` the question will appear again, as demonstrated here:  
+
+![continue?](./continue.jpg)
 
 
