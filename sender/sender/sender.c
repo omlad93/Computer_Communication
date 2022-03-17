@@ -3,14 +3,13 @@
 
 int main(int argc, char* argv[]) {
     FILE* file;
-    int message_size_int;
+    int message_size_int, encoded_message_size_int;
     char* ip = argv[1];
 	int port = atoi(argv[2]);
     char filename[MAX_LENGTH];
-    char size_message[SHORT_MESSAGE];
+    char size_encoded_message[SHORT_MESSAGE];
     char decoded_msg[DECODED];
     char encoded_msg[ENCODED];
-    //char *total_encoded_msg[];
     //create a socket
     socketaddr channel_addr;
     SOCKET socket = create_socket();
@@ -34,23 +33,26 @@ int main(int argc, char* argv[]) {
 
         // Send to Channel: Size + Message
         message_size_int = get_msg_size(file);
-        SENDER_BUFFER = (char*)malloc(message_size_int * sizeof(char));
+        encoded_message_size_int = (message_size_int / DECODED) * ENCODED;
+        SENDER_BUFFER = (char*)malloc(encoded_message_size_int * sizeof(char));
         rewind(file);
-        itoa(message_size_int, size_message, 10);
-        write_socket(socket, size_message, SHORT_MESSAGE); // Sending Message Size
+        itoa(encoded_message_size_int, size_encoded_message, 10);
+        write_socket(socket, size_encoded_message, SHORT_MESSAGE); // Sending Message Size
         // NEED TO WHAIT FOR ACK ???
 
         //loop over the file
         buff_current_size = 0;
-        while(fread(decoded_msg, 1, 26, file) > 0){ // reads 26 bytes from the file
+        while(fread(decoded_msg, 1, DECODED, file) > 0){ // reads 26 bytes from the file
         //    //apply hamming code
             message_hamming(decoded_msg, encoded_msg);
             update_buffer(encoded_msg, socket, channel_addr);
-        //    log_err("\treading file");
+            /* FOR DEGUG ONLY */
+            printf("\tdecoded msg : %s\n", decoded_msg);
+            printf("\tencoded msg : %s\n", encoded_msg);
         }
-        write_socket(socket, SENDER_BUFFER, message_size_int); // Sending Actual Message
+        write_socket(socket, SENDER_BUFFER, encoded_message_size_int); // Sending Actual Message
         printf("\tSender Read File: buffer size is %d\n",buff_current_size);
-        printf("\tSent message to socket (Channel) [%dB]\n", message_size_int);
+        printf("\tSent message to socket (Channel) [%dB]\n", encoded_message_size_int);
         
         //close socket and report number of bytes that were witten and read
         print_output();
@@ -60,8 +62,6 @@ int main(int argc, char* argv[]) {
 	    fclose(file);
 
         //open new socket and connect
-	    //memset(&channel_addr, 0, sizeof(channel_addr));
-	    //set_address(&channel_addr, port, ip);
         socket = create_socket();
         assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied", WSAGetLastError());
         //ask for new filename (if "quit" - close the socket)
@@ -79,39 +79,12 @@ int main(int argc, char* argv[]) {
 
 int get_msg_size(FILE* file) {
     int num = 0;
-    while (fread(MESSEGE_BUFFER, 1, 26, file) > 0) { // reads 26 bytes from the file
+    while (fread(MESSAGE_BUFFER, 1, DECODED, file) > 0) { // reads 26 bytes from the file
         num++;
     }
-    return num * 26;
+    return num * DECODED;
 }
 
-/* applaies hamming code to 26 bits message
-    returns 31 bits message*/
-/*void hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]){
-    int j,k;
-    j = 0;
-    k = 0; 
-    for(int i = 0; i < 31; i++){
-        //check if i is an hamming bit position
-        if(i == ((int)pow(2,k)-1)){ 
-            encoded_msg[i] = 0;
-            k++;
-        }
-        //copy the origin msg bit
-        else{
-            encoded_msg[i] = decoded_msg[j];
-            j++;
-        }
-    }
-
-    //calculate hamming bits
-    for(int i = 0; i < 5; i++){
-        int pos = (int)pow(2,i);
-        int hamming_bit = calc_hamming_bit(pos, encoded_msg);
-        encoded_msg[pos - 1] = hamming_bit;
-    }
-
-}*/
 /* applaies hamming code on 26 bytes of the message
     stores the result in encoded message*/
 void message_hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]) {
@@ -121,6 +94,8 @@ void message_hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]) {
     uint32_t parity_bit = 0;
 
     decoded_msg_int = convert_msg_to_int(decoded_msg);
+    /* FOR DEBUG ONLY */
+    printf("\tdecoded_msg_int : %d\n", decoded_msg_int);
     encoded_msg_int = decoded_msg_int;
     // calc 0 parity bit
     parity_bit = parity(decoded_msg_int, 0x55555555);
@@ -147,10 +122,13 @@ void message_hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]) {
     if (parity_bit) {
         (encoded_msg_int) |= (1 << (15));
     }
+    /* FOR DEBUG ONLY */
+    printf("\tencoded_msg_int : %d\n", encoded_msg_int);
 
     convert_msg_to_string(encoded_msg, encoded_msg_int);
 }
 
+/* Gets an int and stores it as a string in a buffer */
 void convert_msg_to_string(char* encoded_msg, uint32_t encoded_msg_int) {
     for (int i = 0; i < ENCODED; i++) {
         if ((encoded_msg_int >> i & 1)) {
@@ -162,7 +140,7 @@ void convert_msg_to_string(char* encoded_msg, uint32_t encoded_msg_int) {
     }
 }
 
-
+/* Gets a string and stores it to int */
 uint32_t convert_msg_to_int(char *msg) {
     uint32_t msg_int = 0;
     int indx = 0;
@@ -215,6 +193,7 @@ int print_output(){
     return 0;
 }
 
+/* Updates sender buffer with next chunk of encoded 31 bits */
 void update_buffer(char encoded_msg[ENCODED], SOCKET socket, socketaddr addr){
     for (int i = 0; i < ENCODED; i++){
         SENDER_BUFFER[buff_current_size + i] = encoded_msg[i];

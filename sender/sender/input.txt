@@ -1,4 +1,1 @@
-Hello, I'm your txt file
-You're welcome to try and read me with your script and send me through the sockets :)
-I will not look the same on the other side :o
-Valar Morghulis.
+11110000111100001111000011
