@@ -13,6 +13,7 @@
 //#define _CRT_SECURE_NO_WARNINGS
 
 char MESSAGE_BUFFER[MAX_LENGTH];
+char* EXPANDED_MESSAGE;
 char* SENDER_BUFFER;
 
 //char RECEIVER_BUFFER[MAX_LENGTH];
@@ -34,3 +35,7 @@ int print_output();
 void update_buffer(char decoded_msg[DECODED], SOCKET socket, socketaddr addr);
 
 void convert_msg_to_char_arr(char* orig_msg, char* parsed_msg, int orig_msg_size);
+
+void update_expanded_message_buffer(int start, char decoded_msg[DECODED]);
+
+void copy_n_chars(char* source, char* dest, int start, int n);

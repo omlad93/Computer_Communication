@@ -11,6 +11,8 @@ int main(int argc, char* argv[]) {
     char size_encoded_message[SHORT_MESSAGE];
     char decoded_msg[DECODED];
     char encoded_msg[ENCODED];
+    char expanded_decoded_message[DECODED * 8];
+    int start = 0;
     // create a socket
     socketaddr channel_addr;
     SOCKET socket = create_socket();
@@ -30,23 +32,36 @@ int main(int argc, char* argv[]) {
         printf("\tSending file: %s to Receiver Through the Noisy-Channel \n", filename);
 
         // Send to Channel: Size + Message
-        message_size_int = get_msg_size(file);
+        message_size_int = (get_msg_size(file)) * 8; // number of bits in the message
         encoded_message_size_int = (message_size_int / DECODED) * ENCODED;
-        SENDER_BUFFER = (char*)malloc(encoded_message_size_int * sizeof(char));
+        EXPANDED_MESSAGE = (char*)malloc(message_size_int * sizeof(char)); // decoded expanded buffer
+        SENDER_BUFFER = (char*)malloc(encoded_message_size_int * sizeof(char)); // decoded expanded buffer
         rewind(file);
         itoa(encoded_message_size_int, size_encoded_message, 10);
         write_socket(socket, size_encoded_message, SHORT_MESSAGE);  // Sending Message Size
+        printf("\tSending message size\n");
         // NEED TO WHAIT FOR ACK ???
 
         // loop over the file
         buff_current_size = 0;
         while (fread(decoded_msg, 1, DECODED, file) > 0) {  // reads 26 bytes from the file
-                                                            //    //apply hamming code
+            convert_msg_to_char_arr(decoded_msg, expanded_decoded_message, DECODED); 
+            printf("\tMesaage Converted\n");
+            update_expanded_message_buffer(start*DECODED*8, expanded_decoded_message);
+            start++;
+            //    //apply hamming code
+            //message_hamming(expanded_decoded_message, encoded_msg);
+            //update_buffer(encoded_msg, socket, channel_addr);
+            /* FOR DEGUG ONLY */
+            //printf("\tdecoded msg : %s\n", decoded_msg);
+            //printf("\tencoded msg : %s\n", encoded_msg);
+        }
+        //start = 0;
+        for (int i = 0; i < (message_size_int / DECODED); i++) {
+            copy_n_chars(EXPANDED_MESSAGE, decoded_msg, i * DECODED, DECODED);
             message_hamming(decoded_msg, encoded_msg);
             update_buffer(encoded_msg, socket, channel_addr);
-            /* FOR DEGUG ONLY */
-            printf("\tdecoded msg : %s\n", decoded_msg);
-            printf("\tencoded msg : %s\n", encoded_msg);
+            //start++;
         }
         write_socket(socket, SENDER_BUFFER, encoded_message_size_int);  // Sending Actual Message
                 /* FOR DEBUG ONLY */
@@ -58,6 +73,7 @@ int main(int argc, char* argv[]) {
         print_output();
         closesocket(socket);
         free(SENDER_BUFFER);
+        free(EXPANDED_MESSAGE);
         WSACleanup();
         fclose(file);
 
@@ -87,6 +103,18 @@ void convert_msg_to_char_arr(char* orig_msg, char* parsed_msg, int orig_msg_size
     }
 }
 
+void copy_n_chars(char* source, char* dest, int start, int n) {
+    for (int i = 0; i < n; i++) {
+        dest[i] = source[start + i];
+    }
+}
+
+void update_expanded_message_buffer(int start, char* decoded_msg) {
+    for (int i = 0; i < DECODED*8; i++) {
+        EXPANDED_MESSAGE[start + i] = decoded_msg[i];
+    }
+}
+
 int get_msg_size(FILE* file) {
     int num = 0;
     while (fread(MESSAGE_BUFFER, 1, DECODED, file) > 0) {  // reads 26 bytes from the file
@@ -97,7 +125,7 @@ int get_msg_size(FILE* file) {
 
 /* applaies hamming code on 26 bytes of the message
     stores the result in encoded message*/
-void message_hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]) {
+void message_hamming(char* decoded_msg, char* encoded_msg) {
     uint32_t encoded_msg_int, decoded_msg_int;
     uint32_t masked = 0;
     uint32_t parity_bit = 0;
