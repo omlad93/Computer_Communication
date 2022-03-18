@@ -126,9 +126,8 @@ int main(int argc, char* argv[]) {
     double ratio;
     assert_num((argc <= 5) & (argc >= 3), "Noisy Channel Got Unexpected Numer og Arguments", argc);
     int debug_mode = FALSE;
-    if ((argc == 5) or ((argc==4) and (not(strcmp(argv[1],"-d"))))) {
-        
-        if (not(strcmp(argv[argc-1],"-debug"))) {
+    if ((argc == 5) or ((argc == 4) and (not(strcmp(argv[1], "-d"))))) {
+        if (not(strcmp(argv[argc - 1], "-debug"))) {
             log_err("working on debug mode (Fixed Ports)");
             debug_mode = TRUE;
         }
