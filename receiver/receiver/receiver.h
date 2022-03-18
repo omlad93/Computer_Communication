@@ -34,7 +34,7 @@ char* ORIGIN_MESSAGE;
 char* EXPANDED_MESSAGE;
 char* RECEIVER_BUF;
 
-void update_receiver_file(FILE *file, char *msg);
+void update_receiver_file(FILE* file, char* msg, int num_of_byts);
 
 void fix_hamming_message(char msg[MAX_LENGTH], char fixed_msg[MAX_LENGTH], int msg_size);
 
