@@ -1,6 +1,19 @@
 #pragma once
 #include "receiver.h"
 
+
+
+void convert_char_arr_to_mgs(char* orig_msg, char* parsed_msg, int orig_msg_size) {
+    for (int i = 0; i < orig_msg_size; i++) {
+        orig_msg[i] = (char)(0);
+        for (int j = 0; j < 8; j++) {
+            if (parsed_msg[8*i + j] == '1') {
+                BIT_SET1_R(orig_msg[i], 8-1-j);
+            }
+        }
+    }
+}
+
 /*
     Writes the parsed message received from channel
 */
@@ -22,20 +35,33 @@ void fix_hamming_message(char* msg, char* fixed_msg, int msg_size) {
     uint32_t int_msg, fixed_msg_int;
     for (int i = 0; i < (msg_size / ENCODED); i++) {
         calc_curr_substring(i, msg, substring);
+        /* FOR DEBUG ONLY */
+        printf("\tcalculated substring : %s\n", substring);
         int_msg = convert_msg_to_int(substring);
+        /* FOR DEBUG ONLY */
+        printf("\tcalculated substring int : %d\n", int_msg);
         fixed_msg_int = fix_hamming_substring(int_msg);
+        /* FOR DEBUG ONLY */
+        printf("\tcalculated fixed substring int : %d\n", fixed_msg_int);
         receiver_stats->num_received += ENCODED;
         add_stripped_substring_to_buffer(fixed_msg, fixed_msg_int, i * DECODED);
+        /* FOR DEBUG ONLY */
+        printf("\tfixed strriped msg : %s\n", fixed_msg);
     }
 }
 
 /* Updates fixed message buffer with stripped 26 bits */
 void add_stripped_substring_to_buffer(char* fixed_msg, int fixed_msg_int, int start) {
-    for (int i = 0; i < DECODED; i++) {
-        if ((fixed_msg_int >> i & 1)) {
-            fixed_msg[start + i] = '1';
-        } else {
-            fixed_msg[start + i] = '0';
+    int index = 0;
+    for (int i = 0; i < ENCODED; i++) {
+        if (i != 0 && i != 1 && i != 3 && i != 7 && i != 15) {
+            if ((fixed_msg_int >> i & 1)) {
+                fixed_msg[start + index] = '1';
+            }
+            else {
+                fixed_msg[start + index] = '0';
+            }
+            index++;
         }
     }
 }
@@ -74,7 +100,7 @@ void calc_curr_substring(int start, char* msg, char substring[ENCODED]) {
 /* Fixes a single chunk of message */
 uint32_t fix_hamming_substring(uint32_t int_msg) {
     int err = 0;
-    int err_index = -1;
+    int err_index = 0;
     uint32_t masked = 0;
     uint32_t parity_bit = 0;
     uint32_t stripped = int_msg;
@@ -110,6 +136,7 @@ uint32_t fix_hamming_substring(uint32_t int_msg) {
         err_index += (int)pow(2, 0);
     }
     if (err) {
+        printf("\tERROR was detected\n");
         receiver_stats->num_errors_fixed++;
         stripped ^= (1ULL << (err_index));
     }
@@ -170,15 +197,15 @@ int main(int argc, char* argv[]) {
 
         status = read_socket(socket, RECEIVER_BUF, encoded_message_size_int);
         /* FOR DEBUG ONLY */
-        printf("\tencoded_msg = %s \n", RECEIVER_BUF);
+        printf("\RECEIVER_BUF = %s \n", RECEIVER_BUF);
         // encode hamming message
         fix_hamming_message(RECEIVER_BUF, fixed_msg, encoded_message_size_int);
         printf("\tdecoded_msg = %s \n", fixed_msg);
-        fixed_msg_int = convert_string_to_int(fixed_msg, message_size_int);
-        itoa(fixed_msg_int, msg, 10);
+        //fixed_msg_int = convert_string_to_int(fixed_msg, message_size_int);
+        //itoa(fixed_msg_int, msg, 10);
         printf("\tfixed hamming\n");
         // write the received message to file
-        update_receiver_file(file, msg);
+        update_receiver_file(file, fixed_msg);
         printf("\tWrote file\n");
         //  write the received message to file
         printf("\tGot message from socket (Channel) [%dB]\n", encoded_message_size_int);

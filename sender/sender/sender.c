@@ -49,6 +49,8 @@ int main(int argc, char* argv[]) {
             printf("\tencoded msg : %s\n", encoded_msg);
         }
         write_socket(socket, SENDER_BUFFER, encoded_message_size_int);  // Sending Actual Message
+                /* FOR DEBUG ONLY */
+        printf("\SENDER_BUFFER = %s \n", SENDER_BUFFER);
         printf("\tSender Read File: buffer size is %d\n", buff_current_size);
         printf("\tSent message to socket (Channel) [%dB]\n", encoded_message_size_int);
 
@@ -73,6 +75,16 @@ int main(int argc, char* argv[]) {
     WSACleanup();
     // print output ???
     return 0;
+}
+
+void convert_msg_to_char_arr(char* orig_msg, char* parsed_msg, int orig_msg_size) {
+    char val;
+    for (int i = 0; i < orig_msg_size; i++) {
+        for (int j = 0; j < 8; i++) {
+            val = BIT_EVAL_R(orig_msg[i], j);
+            parsed_msg[8*i + (8 - 1 - j)]= val; 
+        }
+    }
 }
 
 int get_msg_size(FILE* file) {

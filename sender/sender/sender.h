@@ -32,3 +32,5 @@ void hamming(char* decoded_msg, char* encoded_msg);
 int print_output();
 
 void update_buffer(char decoded_msg[DECODED], SOCKET socket, socketaddr addr);
+
+void convert_msg_to_char_arr(char* orig_msg, char* parsed_msg, int orig_msg_size);

@@ -44,3 +44,5 @@ uint32_t convert_msg_to_int(char* msg);
 uint32_t convert_string_to_int(char* str, int str_size);
 
 void respond_to_sender(SOCKET socket);
+
+void convert_char_arr_to_mgs(char* orig_msg, char* parsed_msg, int orig_msg_size);
