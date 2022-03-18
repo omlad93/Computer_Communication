@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
 
         status = read_socket(socket, RECEIVER_BUF, encoded_message_size_int);
         /* FOR DEBUG ONLY */
-        printf("\RECEIVER_BUF = %s \n", RECEIVER_BUF);
+        printf("\tRECEIVER_BUF = %s \n", RECEIVER_BUF);
         // encode hamming message
         fix_hamming_message(RECEIVER_BUF, fixed_msg, encoded_message_size_int);
         printf("\tdecoded_msg = %s \n", fixed_msg);

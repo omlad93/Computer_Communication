@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
         }
         write_socket(socket, SENDER_BUFFER, encoded_message_size_int);  // Sending Actual Message
                 /* FOR DEBUG ONLY */
-        printf("\SENDER_BUFFER = %s \n", SENDER_BUFFER);
+        printf("\tSENDER_BUFFER = %s \n", SENDER_BUFFER);
         printf("\tSender Read File: buffer size is %d\n", buff_current_size);
         printf("\tSent message to socket (Channel) [%dB]\n", encoded_message_size_int);
 
