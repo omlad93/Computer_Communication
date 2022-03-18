@@ -30,7 +30,7 @@ void generate_noise(Noise_p noise, str noise_type, int a1, int a2) {
 void apply_deterministic(Noise_p noise, str data, int size, int verbose) {
     int next_noised_bit = noise->n - 1;
     if (verbose) {
-        printf("Applying Noise on a %d bytes [%d bits] message: Excpecting ~%d flips\n", size, size * BITS_PER_BYTE, (int)size * BITS_PER_BYTE / noise->n);
+        printf("\tApplying Noise on a %d bits message: Excpecting %d flips\n", size, (int)size / noise->n);
     }
     for (int i = 0; i < size; i++) {
         if (i == next_noised_bit) {
@@ -38,7 +38,7 @@ void apply_deterministic(Noise_p noise, str data, int size, int verbose) {
             next_noised_bit += noise->n;
             noise->flipped++;
             if (verbose) {
-                printf("%d) flipped bit %d\n", noise->flipped, i );
+                printf("\t%d) flipped bit %d from %c to %c\n", noise->flipped, i, BYTE_FLIP(data[i]), data[i]);
             }
         }
     }
@@ -52,7 +52,7 @@ void apply_randomized(Noise_p noise, str data, int size, int verbose) {
     int flipping;  // should flip
     float rnd;
     if (verbose) {
-        printf("Applying Noise on a %d bytes [%d bits] message: Excpecting ~%d flips\n", size, size * BITS_PER_BYTE, (int)(size * BITS_PER_BYTE * noise->probability));
+        printf("\tApplying Noise on a %d bits message: Excpecting ~%d flips\n", size, (int)(size * noise->probability));
     }
     for (int i = 0; i < size; i++) {
         rnd = (float)(rand()) / (float)(RAND_MAX);
@@ -61,7 +61,7 @@ void apply_randomized(Noise_p noise, str data, int size, int verbose) {
             data[i] = BYTE_FLIP(data[i]);
             noise->flipped++;
             if (verbose) {
-                printf("%d) flipped bit %d\n", noise->flipped, i);
+                printf("\t%d) flipped bit %d from %c to %c\n", noise->flipped, i, BYTE_FLIP(data[i]),data[i]);
             }
         }
     }
@@ -121,15 +121,15 @@ int main(int argc, char* argv[]) {
     double ratio;
     assert_num((argc <= 5) & (argc >= 3), "Noisy Channel Got Unexpected Numer og Arguments", argc);
     int debug_mode = FALSE;
-    if ((argc == 5) or ((argc == 4) and (not(strcmp(argv[1], "-d"))))) {
+    if ((argc == 5) or ((argc == 4) and (not(strcmp(argv[1], "-d"))))) { //DEBUG MODE
         if (not(strcmp(argv[argc - 1], "-debug"))) {
-            log_err("working on debug mode (Fixed Ports)");
+            log_err("working on debug mode (Fixed Ports & Verbose)");
             debug_mode = TRUE;
         }
     }
     noise_type = argv[1];
     a1 = atoi(argv[2]);
-    a2 = (argc == 4) ? atoi(argv[3]) : 0;
+    a2 = (not(strcmp(argv[1],RANDOMIZE))) ? atoi(argv[3]) : 0;
     Noise_p noise = (Noise_p)(calloc(1, sizeof(Noise)));
     fd_set sender_fds, receiver_fds;
     socketaddr receiver_sa, sender_sa;
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
         printf("\tReceived message from socket (Sender) [%dB]\n", message_size_int);
 
         //  Apply Noise
-        apply_noise(noise, channel_buffer, size, FALSE);
+        apply_noise(noise, channel_buffer, size, debug_mode);
 
         // Write to Receiver:
         write_size = write_socket(receiver_socket, message_size_str, SHORT_MESSAGE);   // ADD SIZE PARSING
@@ -169,9 +169,9 @@ int main(int argc, char* argv[]) {
             if (not(strcmp(user_command, "no"))) break;
         } while (TRUE);
     }
-    ratio = 100 * ((float)noise->flipped / (float)(BITS_PER_BYTE * noise->transmitted));
-    printf("\tTransffered %d Bytes, Applied Noise on %d bits (%f%% from all bits)\n",
-           noise->transmitted, noise->flipped, ratio);
+    ratio = 100 * ((float)noise->flipped / (float)(noise->transmitted));
+    printf("\tTransffered %d bits [%dB], Applied Noise on %d bits (%f%% from all bits)\n",
+           noise->transmitted,(int)(noise->transmitted/BITS_PER_BYTE), noise->flipped, ratio);
     free(noise);
     closesocket(listen_socket_sender);
     closesocket(listen_socket_receiver);

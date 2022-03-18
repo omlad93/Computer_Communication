@@ -1,4 +1,4 @@
-# Intro to Computer Communication<br>Programming Assignment #1
+# Intro to Computer Communication<br>First Programming Assignment 
 The purpose of the exercise is to acquire a basic knowledge of the programming of socket mechanisms in your work environment.
 This assignment will also practice ECC: $Hamming(26,31,3)$.  
 The exercise will be presented in pairs:  
@@ -26,7 +26,7 @@ In order to be able to build the  `solution` properly, make sure to follow this 
   can be defined by right-clicking on `solution noisy channel` and then `set startup projects`
 * ignore unsafe functions: add `4996` to  `Properties > C/C++ > Advanced property->Disable Specific Warnings` to all projects
 
-![running order configuration](./config.jpg)
+![running order configuration](./images/config.jpg)
 
 
 ## Overview
@@ -41,9 +41,20 @@ In order to be able to build the  `solution` properly, make sure to follow this 
 In order to ise pre-defined ports by the channel (easier to debug) one can `--debug` argument  
 Using the additional argument will set the ports (that the channel is listening to) to the following:  
 6342 for the sender and 6343 for the receiver, allowing running all of executables in single click (after Initializing in VS)
+When working on debug mode that channel will be in `verbose` mode as well, printing the applied noise:  
+
+![verbose](./images/verbose.jpg)
 
 ## Bit Manipulation:
-# FILL ME
+In Order to simplify all the bit manipulation needed for implementing the Hamming Code we decided on the following approach:  
+Given a file with n bits ( a multiple of 26 ) it will be parsed to a string s with n characters that satisfies: <img src="https://render.githubusercontent.com/render/math?math=s \in \{0,1\}n">.  
+note that since n is a multiple of 26 we get that  <img src="https://render.githubusercontent.com/render/math?math=m=\frac{31}{26}n\in\mathbb{N}">.  
+s will be encoded by Hamming algorithm to
+<img src="https://render.githubusercontent.com/render/math?math=s'\in\{0,1\}^m">
+and will be sent through the channel to the receiver.  
+In the receiver s' will be decoded back to s (if possible) and the original file will be re-written.  
+
+
 
 ## Assumptions
 1. Files:  
@@ -61,43 +72,47 @@ We assumed a bit can be flipped only once in the channel. Allowing bits to be fl
 An even number of flips (per bit) is qual to zero, just as odd number of flips (per bit) is equal to a single flip.
 
 ## Hamming Error-Correction-Code  
-We used $Hamming(26,31,3)$ in the assignment:  
-for every 26 bits in the original data, 31 bits are being sent, allowing to detect up to 3 corrupted bits and fix a single error.  
-This leads us to assume that if $Error~$ #TODO!
+We used $Hamming(26,31,3)$ in the assignment:
+meaning a block of 26 bits is encoded into 31 bits: for every 26 bits in the original data, 31 bits are being sent.  
+This is allowing us to detect up to 2 corrupted bits per block and fix a single error.  
+when using **Deterministic noise** with $n < 31$ the file will not be fixable (flips more then 1 bit in block)
+
 
 ## Utilities Function Module
 The utilities library `utils` is composed from the functions needed by all three modules and composed from:
 1. Macro Definitions  
    some of the macros define functions
-   ```C
-    ...
-    #define BIT_FLIP_R(character, i) (character ^ (1 << i))   // flip the ith bit from right in character
-    #define BIT_SET1_R(character, i) (character | (1 << i))   // Set the ith bit from right in character to 1
-    #define BIT_SET0_R(character, i) (character & ~(1 << i))  // Set the ith bit from right in character to 0
-    #define BIT_EVAL_R(character, i) ((character >> i) & 1)   // Get the ith bit from right in character
-    ...
-   ```
+  ```C
+  ...
+  #define BITS_PER_BYTE 8
+  #define BYTE_FLIP(char_to_flip) ((char_to_flip == '0') ? '1' : '0')
+  #define BIT_FLIP_R(character, i) (character ^ (1 << i))   // flip the ith bit from right in character
+  #define BIT_SET1_R(character, i) (character | (1 << i))   // Set the ith bit from right in character to 1
+  #define BIT_SET0_R(character, i) (character & ~(1 << i))  // Set the ith bit from right in character to 0
+  #define BIT_EVAL_R(character, i) ((character >> i) & 1)   // Get the ith bit from right in character
+  ...
+  ```
    some of the macros define constants 
-   ```C
-    ...
-    #define SENDER -1
-    #define RECEIVER -2
-    #define DECODED 26
-    #define ENCODED 31
-    #define PARITY_BITS 5
-    #define MAX_LENGTH 1993
-    #define SHORT_MESSAGE 10
-    #define FAIL -1
-    ...
-   ```
+  ```C
+  ...
+  #define SENDER -1
+  #define RECEIVER -2
+  #define DECODED 26
+  #define ENCODED 31
+  #define PARITY_BITS 5
+  #define MAX_LENGTH 1993
+  #define SHORT_MESSAGE 10
+  #define FAIL -1
+  ...
+  ```
 2. Asserting Functions  
    Written for the code to be cleaner.  
    if the condition is stratified nothing happens,  
    if not the run stops, right after message is printed.
-   ```C
-   inline void assert(int condition, str message);
-   inline void assert_num(int condition, str message, int err_idx);
-   ```
+  ```C
+  inline void assert(int condition, str message);
+  inline void assert_num(int condition, str message, int err_idx);
+  ```
    
 3. Bit Manipulation Functions
    since the simple bit manipulation (flip, set0, set1, get) is defined ias macros
@@ -105,23 +120,23 @@ The utilities library `utils` is composed from the functions needed by all three
    
 4. Winsock2 Wrappers 
    for easy & clean use we wrote the function 
-   ```C
-    
-    //Returns a new Socket & Makes sure it is valid
-    SOCKET create_socket();
+  ```C
+  
+  //Returns a new Socket & Makes sure it is valid
+  SOCKET create_socket();
 
-    //takes a socketaddr* and set it to use Internet Protocol, assign it to port and IP
-    void set_address(socketaddr* addr, int port, char* ip);
+  //takes a socketaddr* and set it to use Internet Protocol, assign it to port and IP
+  void set_address(socketaddr* addr, int port, char* ip);
 
-    // Binds a Socket to a socketaddr & makes sure succeeded
-    int bind_socket(SOCKET socket, socketaddr* addr);
+  // Binds a Socket to a socketaddr & makes sure succeeded
+  int bind_socket(SOCKET socket, socketaddr* addr);
 
-    // reading <size> byte from socket into data & makes sure succeeded
-    int read_socket(SOCKET socket, str data, int size);
+  // reading <size> byte from socket into data & makes sure succeeded
+  int read_socket(SOCKET socket, str data, int size);
 
-    // write <size> byte from data into socket & makes sure succeeded
-    int write_socket(SOCKET socket, str data, int size);
-   ```
+  // write <size> byte from data into socket & makes sure succeeded
+  int write_socket(SOCKET socket, str data, int size);
+  ```
    
 
 ## Channel Description
@@ -152,4 +167,4 @@ The noise definition is implemented using the Noise struct and applied on the da
 When the channel is done with a transaction, it waits for user response for the question `continue?`.  
 if the user answer anything besides `yes` or `no` the question will appear again, as demonstrated here:  
 
-![continue?](./continue.jpg)
+![continue?](./images/continue.jpg)
