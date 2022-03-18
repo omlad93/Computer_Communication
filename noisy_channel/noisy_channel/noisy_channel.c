@@ -98,10 +98,10 @@ void initial_setup(SOCKET listen_socket_sender, socketaddr* sender_sa_p, SOCKET 
     int addlen = sizeof(SOCKADDR);
     assert_num(getsockname(listen_socket_sender, (SOCKADDR*)sender_sa_p, &addlen) == 0,
                "Couldn't get Port for Sender", WSAGetLastError());
-    printf("Socket for Sender:   IP='0.0.0.0' [local] , Port=%d\n", sender_sa_p->sin_port);
+    printf("Socket for Sender:   IP='%s' [local] , Port=%d\n", inet_ntoa(sender_sa_p->sin_addr), sender_sa_p->sin_port);
     assert_num(getsockname(listen_socket_receiver, (SOCKADDR*)receiver_sa_p, &addlen) == 0,
                "Couldn't get Port for Receiver", WSAGetLastError());
-    printf("Socket for Receiver: IP='0.0.0.0' [local] , Port=%d\n", receiver_sa_p->sin_port);
+    printf("Socket for Receiver: IP='%s' [local] , Port=%d\n", inet_ntoa(sender_sa_p->sin_addr), receiver_sa_p->sin_port);
     assert_num(listen(listen_socket_sender, SOMAXCONN) == 0, "listening to sender Returned non-zero", WSAGetLastError());
     assert_num(listen(listen_socket_receiver, SOMAXCONN) == 0, "listening to receiver Returned non-zero", WSAGetLastError());
 }

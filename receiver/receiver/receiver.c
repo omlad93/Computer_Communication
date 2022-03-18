@@ -138,7 +138,6 @@ int main(int argc, char* argv[]) {
     char message_size_str[SHORT_MESSAGE];
     char* fixed_msg;  // NEED TO CHANGE THE SIZE
     int status = 0;
-    DWORD file_attr;
 
     // create a socket
     socketaddr channel_addr;

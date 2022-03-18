@@ -4,6 +4,16 @@
 // #define _CRT_SECURE_NO_WARNINGS
 // #define _WINSOCK_DEPRECATED_NO_WARNINGS
 //#define __STDC_LIB_EXT1__
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#endif 
+
+
+
+//#pragma comment(lib, "ws2_32.lib")
 
 #include <conio.h>
 #include <errno.h>

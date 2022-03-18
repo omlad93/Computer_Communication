@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     printf("SENDER\n");
     printf("Please enter file name\n");
 
-    assert(scanf("%s\n", filename) != 0, "Scanning Failed");
+    //assert(scanf("%s\n", filename) != 0, "Scanning Failed");
     strcpy(filename, HC_INPUT);
 
     while (strcmp(filename, "quit") != 0) {

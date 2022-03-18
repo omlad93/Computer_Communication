@@ -4,6 +4,9 @@
 //#define _CRT_SECURE_NO_WARNINGS
 //#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
+//#pragma comment(lib, "ws2_32.lib")
+//#pragma comment(lib, "../../utils/utils/utils.h")
+
 #include <winsock2.h>
 #include "../../utils/utils/utils.h"
 #include <time.h>
