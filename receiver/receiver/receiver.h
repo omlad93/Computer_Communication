@@ -12,7 +12,12 @@
 //#define _CRT_SECURE_NO_WARNINGS
 //#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #pragma once
-
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#endif 
 
 typedef struct statistics {
     int num_received;
@@ -25,6 +30,8 @@ stats *receiver_stats;
 
 int received_msg_size;
 
+char* ORIGIN_MESSAGE;
+char* EXPANDED_MESSAGE;
 char* RECEIVER_BUF;
 
 void update_receiver_file(FILE *file, char *msg);
