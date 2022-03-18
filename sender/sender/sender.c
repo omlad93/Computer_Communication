@@ -45,8 +45,10 @@ int main(int argc, char* argv[]) {
         // loop over the file
         buff_current_size = 0;
         while (fread(decoded_msg, 1, DECODED, file) > 0) {  // reads 26 bytes from the file
-            convert_msg_to_char_arr(decoded_msg, expanded_decoded_message, DECODED); 
-            printf("\tMesaage Converted\n");
+            convert_msg_to_char_arr(decoded_msg, expanded_decoded_message, DECODED);
+            /* FOR DEBUG ONLY */
+           // printf("\expanded_decoded_message = %s \n", expanded_decoded_message);
+            //printf("\tMesaage Converted\n");
             update_expanded_message_buffer(start*DECODED*8, expanded_decoded_message);
             start++;
             //    //apply hamming code
@@ -57,6 +59,8 @@ int main(int argc, char* argv[]) {
             //printf("\tencoded msg : %s\n", encoded_msg);
         }
         //start = 0;
+        /* FOR DEBUG ONLY */
+        printf("\expanded_decoded_message = %s \n", EXPANDED_MESSAGE);
         for (int i = 0; i < (message_size_int / DECODED); i++) {
             copy_n_chars(EXPANDED_MESSAGE, decoded_msg, i * DECODED, DECODED);
             message_hamming(decoded_msg, encoded_msg);
@@ -64,7 +68,7 @@ int main(int argc, char* argv[]) {
             //start++;
         }
         write_socket(socket, SENDER_BUFFER, encoded_message_size_int);  // Sending Actual Message
-                /* FOR DEBUG ONLY */
+        /* FOR DEBUG ONLY */
         printf("\tSENDER_BUFFER = %s \n", SENDER_BUFFER);
         printf("\tSender Read File: buffer size is %d\n", buff_current_size);
         printf("\tSent message to socket (Channel) [%dB]\n", encoded_message_size_int);
@@ -94,11 +98,17 @@ int main(int argc, char* argv[]) {
 }
 
 void convert_msg_to_char_arr(char* orig_msg, char* parsed_msg, int orig_msg_size) {
-    char val;
+    int val;
     for (int i = 0; i < orig_msg_size; i++) {
-        for (int j = 0; j < 8; i++) {
+        for (int j = 0; j < 8; j++) {
             val = BIT_EVAL_R(orig_msg[i], j);
-            parsed_msg[8*i + (8 - 1 - j)]= val; 
+            if (val == 1) {
+                parsed_msg[8 * i + (8 - 1 - j)] = '1';
+            }
+            else {
+                parsed_msg[8 * i + (8 - 1 - j)] = '0';
+            }
+             
         }
     }
 }
@@ -132,7 +142,7 @@ void message_hamming(char* decoded_msg, char* encoded_msg) {
 
     decoded_msg_int = convert_msg_to_int(decoded_msg);
     /* FOR DEBUG ONLY */
-    printf("\tdecoded_msg_int : %d\n", decoded_msg_int);
+    //printf("\tdecoded_msg_int : %d\n", decoded_msg_int);
     encoded_msg_int = decoded_msg_int;
     // calc 0 parity bit
     parity_bit = parity(decoded_msg_int, 0x55555555);
@@ -159,8 +169,6 @@ void message_hamming(char* decoded_msg, char* encoded_msg) {
     if (parity_bit) {
         (encoded_msg_int) |= (1 << (15));
     }
-    /* FOR DEBUG ONLY */
-    printf("\tencoded_msg_int : %d\n", encoded_msg_int);
 
     convert_msg_to_string(encoded_msg, encoded_msg_int);
 }
@@ -191,38 +199,6 @@ uint32_t convert_msg_to_int(char* msg) {
     return msg_int;
 }
 
-/* applaies hamming code to 26 bits message
-    returns 31 bits message
-void hamming(char decoded_msg[DECODED], char encoded_msg[ENCODED]){
-    char check_bits[PARITY_BITS];
-    parity_bits(decoded_msg,check_bits);
-    int j = 0;
-    for(int i = 0; i < ENCODED; i++){
-        switch (i)
-        {
-        case 1:
-            encoded_msg[i] = check_bits[0];
-            break;
-        case 2:
-            encoded_msg[i] = check_bits[1];
-            break;
-        case 4:
-            encoded_msg[i] = check_bits[2];
-            break;
-        case 8:
-            encoded_msg[i] = check_bits[3];
-            break;
-        case 16:
-            encoded_msg[i] = check_bits[4];
-            break;
-        default:
-            encoded_msg[i] = decoded_msg[j];
-            j++;
-            break;
-        }
-    }
-}
-*/
 // TODO
 int print_output() {
     return 0;
