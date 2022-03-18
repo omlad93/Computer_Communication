@@ -1,9 +1,12 @@
-# Intro to Computer Communication EX01  
-Iris Taubkin 208410969
-Omri Elad 204620702
+# Intro to Computer Communication<br>Programming Assignment #1
+The purpose of the exercise is to acquire a basic knowledge of the programming of socket mechanisms in your work environment.
+This assignment will also practice ECC: $Hamming(26,31,3)$.  
+The exercise will be presented in pairs:  
+**Iris Taubkin** 208410969  
+**Omri Elad** 204620702
 
 ## General Information  
-In order to build the solution correctly we used a 4 vs projects:  
+In order to build the solution correctly we used a 4 Visual-Studio projects:  
 one for each module (Sender, Receiver, Noisy-Channel) and utils functions library.
 In this way each solution can be built and debugged independently but code can still be shared.  
 The main project (due to our definition) is `noisy_channel` but it can be configured differently.
@@ -27,7 +30,7 @@ In order to be able to build the  `solution` properly, make sure to follow this 
 
 
 ## Overview
-* In order to not limit the size files that can be sent through the system we used dynamic-allocated buffers.
+* In order to not limit the size files that can be sent through the system we used dynamic-allocated **buffers**.
   To do so, we are sending two messages each time:
     * the first message is short (limited to 10 Bytes) and is a string representation of the size of the file  
       using this, the destined user (channel and later the receiver) can allocate a buffer
@@ -39,8 +42,28 @@ In order to ise pre-defined ports by the channel (easier to debug) one can `--de
 Using the additional argument will set the ports (that the channel is listening to) to the following:  
 6342 for the sender and 6343 for the receiver, allowing running all of executables in single click (after Initializing in VS)
 
+## Bit Manipulation:
+# FILL ME
 
+## Assumptions
+1. Files:  
+   We assumed that the input file passed to the exists in the system.
+   In case it doesn't exists, the program exiting (returns 0), and presenting an error.
 
+2. Buffer Lengths:  
+   While the buffer used to write & read data is allocated dynamically (according to message size) other buffers are limited.
+   File names are limited by a parameter `MAX_LENGTH` set by default to 1993 Bytes.
+   Buffers for the initial message (of data size) is limited by a parameter `SHORT_MESSAGE` se by default to 10 Bytes.
+   parameter `ENCODED` and `DECODED` are limiting buffer according to hamming requirements.
+
+3. Noise:  
+We assumed a bit can be flipped only once in the channel. Allowing bits to be flipped more then once is adding complexity to the calculation, in addition to making the problem less complicated, since a bit can be either flipped or not.  
+An even number of flips (per bit) is qual to zero, just as odd number of flips (per bit) is equal to a single flip.
+
+## Hamming Error-Correction-Code  
+We used $Hamming(26,31,3)$ in the assignment:  
+for every 26 bits in the original data, 31 bits are being sent, allowing to detect up to 3 corrupted bits and fix a single error.  
+This leads us to assume that if $Error~$ #TODO!
 
 ## Utilities Function Module
 The utilities library `utils` is composed from the functions needed by all three modules and composed from:
@@ -130,5 +153,3 @@ When the channel is done with a transaction, it waits for user response for the 
 if the user answer anything besides `yes` or `no` the question will appear again, as demonstrated here:  
 
 ![continue?](./continue.jpg)
-
-
