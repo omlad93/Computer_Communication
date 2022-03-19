@@ -1,6 +1,6 @@
 # Intro to Computer Communication<br>First Programming Assignment 
 The purpose of the exercise is to acquire a basic knowledge of the programming of socket mechanisms in your work environment.
-This assignment will also practice ECC: $Hamming(26,31,3)$.  
+This assignment will also practice ECC: Hamming(26,31,3).  
 The exercise will be presented in pairs:  
 **Iris Taubkin** 208410969  
 **Omri Elad** 204620702
@@ -30,27 +30,29 @@ In order to be able to build the  `solution` properly, make sure to follow this 
 
 
 ## Overview
-* In order to not limit the size files that can be sent through the system we used dynamic-allocated **buffers**.
+* In order to not limit the size of the files that can be sent through the system we used dynamic-allocated **buffers**.
   To do so, we are sending two messages each time:
-    * the first message is short (limited to 10 Bytes) and is a string representation of the size of the file  
-      using this, the destined user (channel and later the receiver) can allocate a buffer
+    * the first message is short (limited to 10 Bytes) and is a string representation of the size of the file.  
+      Using this, the destined user (channel and later the receiver) can allocate a buffer
     * the second message is the hamming-encoded file (with/without noise)
 * The ports are determined by the channel, which find available ports and assign them to the sockets.  
 
 **ADDITIONAL FEATURE**:  
-In order to ise pre-defined ports by the channel (easier to debug) one can `--debug` argument  
+In order to use pre-defined ports by the channel (easier to debug) one can use `-debug` argument  
 Using the additional argument will set the ports (that the channel is listening to) to the following:  
-6342 for the sender and 6343 for the receiver, allowing running all of executables in single click (after Initializing in VS)
+6342 for the sender and 6343 for the receiver, allowing running all of executables in single click (after Initializing in VS).
 When working on debug mode that channel will be in `verbose` mode as well, printing the applied noise:  
-
+Working on `-debug` mode is enabled also in the **Receiver** and **Sender** modules, choosing the same ports as configured for channel & local IP.  
+<br> 
+Example of verbose functionality:
 ![verbose](./images/verbose.jpg)
 
 ## Bit Manipulation:
 In Order to simplify all the bit manipulation needed for implementing the Hamming Code we decided on the following approach:  
-Given a file with n bits ( a multiple of 26 ) it will be parsed to a string s with n characters that satisfies: <img src="https://render.githubusercontent.com/render/math?math=s \in \{0,1\}n">.  
+Given a file with n bits ( a multiple of 26 ) it will be parsed to a string s with n characters that satisfies: <img src="https://render.githubusercontent.com/render/math?math=s \in \{\'0\',\'1\'\}n">.  
 note that since n is a multiple of 26 we get that  <img src="https://render.githubusercontent.com/render/math?math=m=\frac{31}{26}n\in\mathbb{N}">.  
 s will be encoded by Hamming algorithm to
-<img src="https://render.githubusercontent.com/render/math?math=s'\in\{0,1\}^m">
+<img src="https://render.githubusercontent.com/render/math?math=s'\in\{\'0\',\'1\'\}^m">
 and will be sent through the channel to the receiver.  
 In the receiver s' will be decoded back to s (if possible) and the original file will be re-written.  
 
@@ -58,24 +60,24 @@ In the receiver s' will be decoded back to s (if possible) and the original file
 
 ## Assumptions
 1. Files:  
-   We assumed that the input file passed to the exists in the system.
-   In case it doesn't exists, the program exiting (returns 0), and presenting an error.
+   We assumed that the input file passed to the sender exists in the system.  
+   In case it doesn't exists, the program exiting (returns 0), and presenting an error.    
+   File names are limited for maximum length defined by `MAX_LENGTH` parameter set by default to 1993 Bytes.   
 
 2. Buffer Lengths:  
    While the buffer used to write & read data is allocated dynamically (according to message size) other buffers are limited.
-   File names are limited by a parameter `MAX_LENGTH` set by default to 1993 Bytes.
    Buffers for the initial message (of data size) is limited by a parameter `SHORT_MESSAGE` se by default to 10 Bytes.
    parameter `ENCODED` and `DECODED` are limiting buffer according to hamming requirements.
 
 3. Noise:  
-We assumed a bit can be flipped only once in the channel. Allowing bits to be flipped more then once is adding complexity to the calculation, in addition to making the problem less complicated, since a bit can be either flipped or not.  
-An even number of flips (per bit) is qual to zero, just as odd number of flips (per bit) is equal to a single flip.
+    We assumed a bit can be flipped only once in the channel. Allowing bits to be flipped more then once is adding complexity to the calculation, in addition to making the problem less complicated, since a bit can be either flipped or not.  
+    An even number of flips (per bit) is qual to zero, just as odd number of flips (per bit) is equal to a single flip.
 
 ## Hamming Error-Correction-Code  
-We used $Hamming(26,31,3)$ in the assignment:
+We used Hamming(26,31,3) in the assignment:  
 meaning a block of 26 bits is encoded into 31 bits: for every 26 bits in the original data, 31 bits are being sent.  
 This is allowing us to detect up to 2 corrupted bits per block and fix a single error.  
-when using **Deterministic noise** with $n < 31$ the file will not be fixable (flips more then 1 bit in block)
+when using **Deterministic noise** with n < 31 the file will not be fixable (flips more then 1 bit in block)
 
 
 ## Utilities Function Module
@@ -167,4 +169,12 @@ The noise definition is implemented using the Noise struct and applied on the da
 When the channel is done with a transaction, it waits for user response for the question `continue?`.  
 if the user answer anything besides `yes` or `no` the question will appear again, as demonstrated here:  
 
-![continue?](./images/continue.jpg)
+
+## Sender & Receiver
+the Sender and the Receiver modules are implemented as described in the assignment.  
+the unique functionality for simplifying bit manipulation was already described above.  
+For further information about the implenetation you're welcome to explore our well-documented header & source files ;)  
+<br>  
+
+This is how it lookes (on DEBUG mode):   
+![functionality](./images/functionality.png)
