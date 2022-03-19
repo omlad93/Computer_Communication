@@ -1,8 +1,8 @@
-﻿  utils.c
-  sender.c
+﻿  sender.c
+C:\Users\omlad\source\repos\CC1\sender\sender\sender.c(70,16): warning C4129: 'e': unrecognized character escape sequence
   Generating code
-  1 of 21 functions ( 4.8%) were compiled, the rest were copied from previous compilation.
+  1 of 24 functions ( 4.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    2 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   sender.vcxproj -> C:\Users\omlad\source\repos\CC1\noisy_channel\Release\sender.exe

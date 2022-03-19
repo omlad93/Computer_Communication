@@ -158,7 +158,13 @@ int main(int argc, char* argv[]) {
     char* fixed_msg;  // NEED TO CHANGE THE SIZE
     char* origin_message;
     int status = 0;
-
+    if (argc == 4) {
+        if (not(strcmp(argv[3], "-debug"))) { //DEBUG MODE
+            log_err("working on debug mode (Fixed Port & Local IP)");
+            port = HC_RECEIVER_PORT;
+            ip = IP0;
+        }
+    }
     // create a socket
     socketaddr channel_addr;
     SOCKET socket = create_socket();
@@ -172,9 +178,9 @@ int main(int argc, char* argv[]) {
     // ask for file
     printf("RECEIVER\n");
     printf("Please enter file name\n");
-    // assert(scanf("%s\n", filename) != 0, "Scanning Failed");
+    assert(scanf("%s\n", filename) != 0, "Scanning Failed");
 
-    strcpy(filename, HC_OUTPUT);
+    //strcpy(filename, HC_OUTPUT);
 
     while (strcmp(filename, "quit") != 0) {
         assert(fopen_s(&file, filename, "w") == 0, "Error in opening file\n");

@@ -128,6 +128,7 @@ int main(int argc, char* argv[]) {
         }
     }
     noise_type = argv[1];
+
     a1 = atoi(argv[2]);
     a2 = (not(strcmp(argv[1],RANDOMIZE))) ? atoi(argv[3]) : 0;
     Noise_p noise = (Noise_p)(calloc(1, sizeof(Noise)));

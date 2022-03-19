@@ -13,6 +13,13 @@ int main(int argc, char* argv[]) {
     char encoded_msg[ENCODED];
     char expanded_decoded_message[DECODED * 8];
     int start = 0;
+    if (argc == 4){
+        if(not(strcmp(argv[3], "-debug"))) { //DEBUG MODE
+            log_err("working on debug mode (Fixed Port & Local IP)");
+            port = HC_SENDER_PORT;
+            ip = IP0;
+        }
+    }
     // create a socket
     socketaddr channel_addr;
     SOCKET socket = create_socket();
@@ -24,8 +31,8 @@ int main(int argc, char* argv[]) {
     printf("SENDER\n");
     printf("Please enter file name\n");
 
-    // assert(scanf("%s\n", filename) != 0, "Scanning Failed");
-    strcpy(filename, HC_INPUT);
+    assert(scanf("%s\n", filename) != 0, "Scanning Failed");
+    //strcpy(filename, HC_INPUT);
 
     while (strcmp(filename, "quit") != 0) {
         assert(fopen_s(&file, filename, "r") == 0, "Error in openning file\n");
@@ -69,9 +76,9 @@ int main(int argc, char* argv[]) {
         }
         write_socket(socket, SENDER_BUFFER, encoded_message_size_int);  // Sending Actual Message
         /* FOR DEBUG ONLY */
-        printf("\tSENDER_BUFFER = %s \n", SENDER_BUFFER);
-        printf("\tSender Read File: buffer size is %d\n", buff_current_size);
-        printf("\tSent message to socket (Channel) [%dB]\n", encoded_message_size_int);
+        //printf("\tSENDER_BUFFER = %s \n", SENDER_BUFFER);
+        //printf("\tSender Read File: buffer size is %d\n", buff_current_size);
+        //printf("\tSent message to socket (Channel) [%dB]\n", encoded_message_size_int);
 
         // close socket and report number of bytes that were witten and read
         print_output();
