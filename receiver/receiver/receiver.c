@@ -18,6 +18,7 @@ void convert_char_arr_to_mgs(char* orig_msg, char* parsed_msg, int orig_msg_size
     Writes the parsed message received from channel
 */
 void update_receiver_file(FILE* file, char* msg,int num_of_byts) {
+
     receiver_stats->num_written += num_of_byts;
     fwrite(msg, sizeof(char), num_of_byts, file);
     received_msg_size = 0;
@@ -179,6 +180,7 @@ int main(int argc, char* argv[]) {
         status = read_socket(socket, message_size_str, SHORT_MESSAGE);
         encoded_message_size_int = atoi(message_size_str); //expanded encoded message size
         printf("\tReceived: %d bytes\n", encoded_message_size_int / 8);
+
         message_size_int = (encoded_message_size_int / ENCODED) * DECODED; //expanded decoded message size
         RECEIVER_BUF = (char*)malloc(encoded_message_size_int * sizeof(char));
         fixed_msg = (char*)malloc(message_size_int * sizeof(char));
@@ -190,11 +192,13 @@ int main(int argc, char* argv[]) {
         fix_hamming_message(RECEIVER_BUF, fixed_msg, encoded_message_size_int);
         convert_char_arr_to_mgs(origin_message, fixed_msg, message_size_int / 8);
         origin_message[message_size_int / 8] = '\0';
+
         //itoa(fixed_msg_int, msg, 10);
         // write the received message to file
         update_receiver_file(file, origin_message, message_size_int / 8);
         printf("\tWrote : %d bytes\n", message_size_int / 8);
         printf("\tCorrected : %d errors\n", receiver_stats->num_errors_fixed);
+
 
         closesocket(socket);
         WSACleanup();

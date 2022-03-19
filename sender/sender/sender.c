@@ -13,6 +13,7 @@ int main(int argc, char* argv[]) {
     char encoded_msg[ENCODED];
     char expanded_decoded_message[DECODED * 8];
     int start;
+
     // create a socket
     socketaddr channel_addr;
     SOCKET socket = create_socket();
@@ -35,13 +36,13 @@ int main(int argc, char* argv[]) {
         num_of_bytes = (get_msg_size(file));
         printf("\tfile length: %d bytes \n", num_of_bytes);
         message_size_int = num_of_bytes * 8; // number of bits in the message
+
         encoded_message_size_int = (message_size_int / DECODED) * ENCODED;
         EXPANDED_MESSAGE = (char*)malloc(message_size_int * sizeof(char)); // decoded expanded buffer
         SENDER_BUFFER = (char*)malloc(encoded_message_size_int * sizeof(char)); // decoded expanded buffer
         rewind(file);
         itoa(encoded_message_size_int, size_encoded_message, 10);
         write_socket(socket, size_encoded_message, SHORT_MESSAGE);  // Sending Message Size
-
 
         // loop over the file
         buff_current_size = 0;
@@ -60,6 +61,7 @@ int main(int argc, char* argv[]) {
         write_socket(socket, SENDER_BUFFER, encoded_message_size_int);  // Sending Actual Message
 
         printf("\tSent : %d bytes\n", encoded_message_size_int / 8);
+
         printf("\tSent message to socket (Channel) [%dB]\n", encoded_message_size_int);
 
         // close socket and report number of bytes that were witten and read
