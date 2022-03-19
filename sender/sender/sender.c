@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[]) {
     FILE* file;
-    int message_size_int, encoded_message_size_int;
+    int message_size_int, encoded_message_size_int,num_of_bytes;
     char* ip = argv[1];
     int port = atoi(argv[2]);
     char filename[MAX_LENGTH];
@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
     char decoded_msg[DECODED];
     char encoded_msg[ENCODED];
     char expanded_decoded_message[DECODED * 8];
-    int start = 0;
+    int start;
     // create a socket
     socketaddr channel_addr;
     SOCKET socket = create_socket();
@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied", WSAGetLastError());
 
     // ask for file
-    printf("SENDER\n");
+    printf("SENDER IP : %s PORT: %d\n",ip, port);
     printf("Please enter file name\n");
 
     // assert(scanf("%s\n", filename) != 0, "Scanning Failed");
@@ -32,45 +32,34 @@ int main(int argc, char* argv[]) {
         printf("\tSending file: %s to Receiver Through the Noisy-Channel \n", filename);
 
         // Send to Channel: Size + Message
-        message_size_int = (get_msg_size(file)) * 8; // number of bits in the message
+        num_of_bytes = (get_msg_size(file));
+        printf("\tfile length: %d bytes \n", num_of_bytes);
+        message_size_int = num_of_bytes * 8; // number of bits in the message
         encoded_message_size_int = (message_size_int / DECODED) * ENCODED;
         EXPANDED_MESSAGE = (char*)malloc(message_size_int * sizeof(char)); // decoded expanded buffer
         SENDER_BUFFER = (char*)malloc(encoded_message_size_int * sizeof(char)); // decoded expanded buffer
         rewind(file);
         itoa(encoded_message_size_int, size_encoded_message, 10);
         write_socket(socket, size_encoded_message, SHORT_MESSAGE);  // Sending Message Size
-        printf("\tSending message size\n");
-        // NEED TO WHAIT FOR ACK ???
+
 
         // loop over the file
         buff_current_size = 0;
+        start = 0;
         while (fread(decoded_msg, 1, DECODED, file) > 0) {  // reads 26 bytes from the file
             convert_msg_to_char_arr(decoded_msg, expanded_decoded_message, DECODED);
-            /* FOR DEBUG ONLY */
-           // printf("\expanded_decoded_message = %s \n", expanded_decoded_message);
-            //printf("\tMesaage Converted\n");
             update_expanded_message_buffer(start*DECODED*8, expanded_decoded_message);
             start++;
-            //    //apply hamming code
-            //message_hamming(expanded_decoded_message, encoded_msg);
-            //update_buffer(encoded_msg, socket, channel_addr);
-            /* FOR DEGUG ONLY */
-            //printf("\tdecoded msg : %s\n", decoded_msg);
-            //printf("\tencoded msg : %s\n", encoded_msg);
         }
-        //start = 0;
-        /* FOR DEBUG ONLY */
-        printf("\expanded_decoded_message = %s \n", EXPANDED_MESSAGE);
+
         for (int i = 0; i < (message_size_int / DECODED); i++) {
             copy_n_chars(EXPANDED_MESSAGE, decoded_msg, i * DECODED, DECODED);
             message_hamming(decoded_msg, encoded_msg);
             update_buffer(encoded_msg, socket, channel_addr);
-            //start++;
         }
         write_socket(socket, SENDER_BUFFER, encoded_message_size_int);  // Sending Actual Message
-        /* FOR DEBUG ONLY */
-        printf("\tSENDER_BUFFER = %s \n", SENDER_BUFFER);
-        printf("\tSender Read File: buffer size is %d\n", buff_current_size);
+
+        printf("\tSent : %d bytes\n", encoded_message_size_int / 8);
         printf("\tSent message to socket (Channel) [%dB]\n", encoded_message_size_int);
 
         // close socket and report number of bytes that were witten and read
@@ -93,7 +82,6 @@ int main(int argc, char* argv[]) {
     shutdown(socket, SD_BOTH);
     closesocket(socket);
     WSACleanup();
-    // print output ???
     return 0;
 }
 
@@ -141,8 +129,6 @@ void message_hamming(char* decoded_msg, char* encoded_msg) {
     uint32_t parity_bit = 0;
 
     decoded_msg_int = convert_msg_to_int(decoded_msg);
-    /* FOR DEBUG ONLY */
-    //printf("\tdecoded_msg_int : %d\n", decoded_msg_int);
     encoded_msg_int = decoded_msg_int;
     // calc 0 parity bit
     parity_bit = parity(decoded_msg_int, 0x55555555);
@@ -211,7 +197,7 @@ void update_buffer(char encoded_msg[ENCODED], SOCKET socket, socketaddr addr) {
     }
     buff_current_size += ENCODED;
     if (buff_current_size > MAX_LENGTH - ENCODED) {  // should not get here because we did dynamic buffer allocation
-        Sleep(50);                                   // ???
+        Sleep(50);                                   
         write_socket(socket, SENDER_BUFFER, buff_current_size);
         buff_current_size = 0;
     }

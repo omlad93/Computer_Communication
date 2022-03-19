@@ -18,8 +18,6 @@ void convert_char_arr_to_mgs(char* orig_msg, char* parsed_msg, int orig_msg_size
     Writes the parsed message received from channel
 */
 void update_receiver_file(FILE* file, char* msg,int num_of_byts) {
-    //int num_of_byts;
-    //num_of_byts = (receiver_stats->num_received / ENCODED) * DECODED;
     receiver_stats->num_written += num_of_byts;
     fwrite(msg, sizeof(char), num_of_byts, file);
     received_msg_size = 0;
@@ -31,7 +29,6 @@ void update_receiver_file(FILE* file, char* msg,int num_of_byts) {
 */
 void fix_hamming_message(char* msg, char* fixed_msg, int msg_size) {
     char substring[ENCODED] = {0};
-    // int j;
     uint32_t int_msg, fixed_msg_int;
     for (int i = 0; i < (msg_size / ENCODED); i++) {
         calc_curr_substring(i*ENCODED, msg, substring);
@@ -128,18 +125,17 @@ uint32_t fix_hamming_substring(uint32_t int_msg) {
         err_index += (int)pow(2, 0);
     }
     if (err) {
-        printf("\tERROR was detected\n");
         receiver_stats->num_errors_fixed++;
         stripped ^= (1ULL << (err_index));
     }
     return stripped;
 }
 
-void respond_to_sender(SOCKET socket) {
+ /*respond_to_sender(SOCKET socket) {
     char msg[100];
     sprintf_s(msg, sizeof(msg), "%d %d %d", receiver_stats->num_received, receiver_stats->num_written, receiver_stats->num_errors_fixed);
     write_socket(socket, msg, 100);
-}
+}*/
 
 void print_receiver_output() {
     fprintf(stderr, "received: %d bytes\n", receiver_stats->num_received);
@@ -151,11 +147,10 @@ int main(int argc, char* argv[]) {
     FILE* file;
     char* ip = argv[1];
     int port = atoi(argv[2]);
-    int message_size_int, encoded_message_size_int, fixed_msg_int;
+    int message_size_int, encoded_message_size_int;
     char filename[MAX_LENGTH];
-    char msg[MAX_LENGTH];
     char message_size_str[SHORT_MESSAGE];
-    char* fixed_msg;  // NEED TO CHANGE THE SIZE
+    char* fixed_msg;  
     char* origin_message;
     int status = 0;
 
@@ -170,7 +165,7 @@ int main(int argc, char* argv[]) {
     receiver_stats = (stats*)calloc(1, sizeof(stats));
     received_msg_size = 0;
     // ask for file
-    printf("RECEIVER\n");
+    printf("RECEIVER IP : %s PORT: %d\n", ip, port);
     printf("Please enter file name\n");
     // assert(scanf("%s\n", filename) != 0, "Scanning Failed");
 
@@ -182,34 +177,24 @@ int main(int argc, char* argv[]) {
 
         // read message size
         status = read_socket(socket, message_size_str, SHORT_MESSAGE);
-        // NEED TO SEND ACK ???
         encoded_message_size_int = atoi(message_size_str); //expanded encoded message size
+        printf("\tReceived: %d bytes\n", encoded_message_size_int / 8);
         message_size_int = (encoded_message_size_int / ENCODED) * DECODED; //expanded decoded message size
         RECEIVER_BUF = (char*)malloc(encoded_message_size_int * sizeof(char));
         fixed_msg = (char*)malloc(message_size_int * sizeof(char));
         origin_message = (char*)malloc((message_size_int/8 + 1) * sizeof(char)); // orifinal message 
 
         status = read_socket(socket, RECEIVER_BUF, encoded_message_size_int);
-        /* FOR DEBUG ONLY */
-        printf("\tRECEIVER_BUF = %s \n", RECEIVER_BUF);
+        printf("\tGot message from socket (Channel) [%dB]\n", encoded_message_size_int);
         // encode hamming message
         fix_hamming_message(RECEIVER_BUF, fixed_msg, encoded_message_size_int);
         convert_char_arr_to_mgs(origin_message, fixed_msg, message_size_int / 8);
         origin_message[message_size_int / 8] = '\0';
-        printf("\tdecoded_msg = %s \n", fixed_msg);
-        //fixed_msg_int = convert_string_to_int(fixed_msg, message_size_int);
         //itoa(fixed_msg_int, msg, 10);
-        printf("\tfixed hamming\n");
         // write the received message to file
         update_receiver_file(file, origin_message, message_size_int / 8);
-        printf("\tWrote file\n");
-        //  write the received message to file
-        printf("\tGot message from socket (Channel) [%dB]\n", encoded_message_size_int);
-        // sends a respond ???
-        // respond_to_sender(socket);
-
-        // print to file
-        // print_receiver_file();
+        printf("\tWrote : %d bytes\n", message_size_int / 8);
+        printf("\tCorrected : %d errors\n", receiver_stats->num_errors_fixed);
 
         closesocket(socket);
         WSACleanup();
@@ -229,6 +214,5 @@ int main(int argc, char* argv[]) {
     shutdown(socket, SD_BOTH);
     closesocket(socket);
     WSACleanup();
-    print_receiver_output();
     return 0;
 }
