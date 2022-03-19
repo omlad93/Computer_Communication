@@ -1,22 +1,18 @@
 // #pragma once
 #ifndef UTILS
 #define UTILS
-// #define _CRT_SECURE_NO_WARNINGS
-// #define _WINSOCK_DEPRECATED_NO_WARNINGS
-//#define __STDC_LIB_EXT1__
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 #ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-#endif 
-
-
+#endif
 
 //#pragma comment(lib, "ws2_32.lib")
 
 #include <conio.h>
 #include <errno.h>
+//#include <fileapi.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +21,6 @@
 #include <sys/timeb.h>
 #include <sys/types.h>
 #include <winsock2.h>
-#include <fileapi.h>
 
 typedef __int32 int32_t;
 typedef unsigned __int32 uint32_t;
@@ -50,7 +45,7 @@ typedef unsigned __int32 uint32_t;
 #define BIT_FLIP_R(character, i) (character ^ (1ULL << (i)))   // flip the ith bit from right in character
 #define BIT_SET1_R(character, i) (character | (1ULL << (i)))   // Set the ith bit from right in character to 1
 #define BIT_SET0_R(character, i) (character & ~(1ULL << (i)))  // Set the ith bit from right in character to 0
-#define BIT_EVAL_R(character, i) ((character >> i) & 1)   // Get the ith bit from right in character
+#define BIT_EVAL_R(character, i) ((character >> i) & 1)        // Get the ith bit from right in character
 
 #define P1_MASK from_binary("1010101010101010101010101010101")
 #define P2_MASK from_binary("0110011001100110011001100110011")
@@ -100,7 +95,6 @@ inline void assert_num(int condition, str message, int err_idx) {
         exit(FAIL);
     }
 }
-
 
 int file_exists(LPCTSTR path);
 /*

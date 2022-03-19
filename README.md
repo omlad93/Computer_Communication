@@ -13,9 +13,12 @@ The main project (due to our definition) is `noisy_channel` but it can be config
 
 ## Important Information
 **the above section means that our Release and Debug folder with all the executable are:**  
-`{ZIP_ROOT}\\noisy_channel\Release` and `{ZIP_ROOT}\\noisy_channel\Debug`
+`{ZIP_ROOT}\noisy_channel\Release` and `{ZIP_ROOT}\noisy_channel\Debug`  
+***All 3 executables can be found in he above paths and Not in Sub-projects Directory***  
+for convenient we added a shortcut to noisy_channel.sln and folder mentioned above in the `ZIP_ROOT`.
 
 ## Initialization Process on Visual Studio  
+All this should be already configured in our solution. In case of an error follow this section:  
 In order to be able to build the  `solution` properly, make sure to follow this steps:
 * add `Ws2_32.lib` to `Linker->Input->Additional Dependencies`  
 * add `_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;` to `C/C++->Preprocessor->Preprocessor Definitions` to avoid VS C limitations.  
@@ -47,9 +50,6 @@ Using the additional argument will set the ports (that the channel is listening 
 6342 for the sender and 6343 for the receiver, allowing running all of executables in single click (after Initializing in VS).
 When working on debug mode that channel will be in `verbose` mode as well, printing the applied noise:  
 Working on `-debug` mode is enabled also in the **Receiver** and **Sender** modules, choosing the same ports as configured for channel & local IP.  
-<br> 
-Example of verbose functionality:
-![verbose](./images/verbose.jpg)
 
 ## Bit Manipulation:
 In Order to simplify all the bit manipulation needed for implementing the Hamming Code we decided on the following approach:  
@@ -181,4 +181,4 @@ For further information about the implenetation you're welcome to explore our we
 <br>  
 
 This is how it lookes (on DEBUG mode):   
-![functionality](./images/functionality.png)
+![functionality](./images/functionality.jpg)
