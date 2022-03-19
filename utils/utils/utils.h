@@ -47,9 +47,9 @@ typedef unsigned __int32 uint32_t;
 
 #define BITS_PER_BYTE 8
 #define BYTE_FLIP(char_to_flip) ((char_to_flip == '0') ? '1' : '0')
-#define BIT_FLIP_R(character, i) (character ^ (1 << i))   // flip the ith bit from right in character
-#define BIT_SET1_R(character, i) (character | (1 << i))   // Set the ith bit from right in character to 1
-#define BIT_SET0_R(character, i) (character & ~(1 << i))  // Set the ith bit from right in character to 0
+#define BIT_FLIP_R(character, i) (character ^ (1ULL << (i)))   // flip the ith bit from right in character
+#define BIT_SET1_R(character, i) (character | (1ULL << (i)))   // Set the ith bit from right in character to 1
+#define BIT_SET0_R(character, i) (character & ~(1ULL << (i)))  // Set the ith bit from right in character to 0
 #define BIT_EVAL_R(character, i) ((character >> i) & 1)   // Get the ith bit from right in character
 
 #define P1_MASK from_binary("1010101010101010101010101010101")

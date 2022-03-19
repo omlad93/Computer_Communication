@@ -154,27 +154,32 @@ int main(int argc, char* argv[]) {
     char* fixed_msg;  
     char* origin_message;
     int status = 0;
+        if (argc == 4) {
+        if (not(strcmp(argv[3], "-debug"))) { //DEBUG MODE
+            log_err("working on debug mode (Fixed Port & Local IP)");
+            port = HC_RECEIVER_PORT;
+            ip = HC_RECEIVER_IP;
+        }
+    }
 
     // create a socket
     socketaddr channel_addr;
     SOCKET socket = create_socket();
     memset(&channel_addr, 0, sizeof(channel_addr));
-    set_address(&channel_addr, HC_RECEIVER_PORT, HC_RECEIVER_IP);
-    // update_sharedata(RECEIVER, port, ip);
+    set_address(&channel_addr, port, ip);
     assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied", WSAGetLastError());
-
     receiver_stats = (stats*)calloc(1, sizeof(stats));
     received_msg_size = 0;
+
     // ask for file
     printf("RECEIVER IP : %s PORT: %d\n", ip, port);
     printf("Please enter file name\n");
-    // assert(scanf("%s\n", filename) != 0, "Scanning Failed");
+    assert(scanf("%s", filename) != 0, "Scanning Failed");
 
-    strcpy(filename, HC_OUTPUT);
+    //strcpy(filename, HC_OUTPUT);
 
     while (strcmp(filename, "quit") != 0) {
-        assert(fopen_s(&file, filename, "w") == 0, "Error in opening file\n");
-        printf("\tWriting file: %s According to Data Received from the Noisy-Channel \n", filename);
+        
 
         // read message size
         status = read_socket(socket, message_size_str, SHORT_MESSAGE);
@@ -195,14 +200,17 @@ int main(int argc, char* argv[]) {
 
         //itoa(fixed_msg_int, msg, 10);
         // write the received message to file
+        assert(fopen_s(&file, filename, "w") == 0, "Error in opening file\n");
+        printf("\tWriting file: %s According to Data Received from the Noisy-Channel \n", filename);
         update_receiver_file(file, origin_message, message_size_int / 8);
+        fclose(file);
         printf("\tWrote : %d bytes\n", message_size_int / 8);
         printf("\tCorrected : %d errors\n", receiver_stats->num_errors_fixed);
 
 
         closesocket(socket);
         WSACleanup();
-        fclose(file);
+        
         free(fixed_msg);
         free(RECEIVER_BUF);
 
@@ -212,7 +220,7 @@ int main(int argc, char* argv[]) {
 
         // ask for new filename (if "quit" - close the socket)
         printf("Please enter file name\n");
-        assert(scanf("%s\n", filename) != 0, "Scanning Failed");
+        assert(scanf("%s", filename) != 0, "Scanning Failed");
     }
     // cleanup
     shutdown(socket, SD_BOTH);

@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[]) {
     FILE* file;
-    int message_size_int, encoded_message_size_int,num_of_bytes;
+    int message_size_int, encoded_message_size_int, num_of_bytes;
     char* ip = argv[1];
     int port = atoi(argv[2]);
     char filename[MAX_LENGTH];
@@ -14,18 +14,25 @@ int main(int argc, char* argv[]) {
     char expanded_decoded_message[DECODED * 8];
     int start;
 
+    if (argc == 4) {
+        if (not(strcmp(argv[3], "-debug"))) {  // DEBUG MODE
+            log_err("working on debug mode (Fixed Port & Local IP)");
+            port = HC_SENDER_PORT;
+            ip = HC_SENDER_IP;
+        }
+    }
     // create a socket
     socketaddr channel_addr;
     SOCKET socket = create_socket();
     memset(&channel_addr, 0, sizeof(channel_addr));
-    set_address(&channel_addr, HC_SENDER_PORT, HC_SENDER_IP);
+    set_address(&channel_addr, port, ip);
     assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied", WSAGetLastError());
 
     // ask for file
-    printf("SENDER IP : %s PORT: %d\n",ip, port);
+    printf("SENDER IP : %s PORT: %d\n", ip, port);
     printf("Please enter file name\n");
 
-    // assert(scanf("%s\n", filename) != 0, "Scanning Failed");
+    assert(scanf("%s", filename) != 0, "Scanning Failed");
     strcpy(filename, HC_INPUT);
 
     while (strcmp(filename, "quit") != 0) {
@@ -35,11 +42,11 @@ int main(int argc, char* argv[]) {
         // Send to Channel: Size + Message
         num_of_bytes = (get_msg_size(file));
         printf("\tfile length: %d bytes \n", num_of_bytes);
-        message_size_int = num_of_bytes * 8; // number of bits in the message
+        message_size_int = num_of_bytes * 8;  // number of bits in the message
 
         encoded_message_size_int = (message_size_int / DECODED) * ENCODED;
-        EXPANDED_MESSAGE = (char*)malloc(message_size_int * sizeof(char)); // decoded expanded buffer
-        SENDER_BUFFER = (char*)malloc(encoded_message_size_int * sizeof(char)); // decoded expanded buffer
+        EXPANDED_MESSAGE = (char*)malloc(message_size_int * sizeof(char));       // decoded expanded buffer
+        SENDER_BUFFER = (char*)malloc(encoded_message_size_int * sizeof(char));  // decoded expanded buffer
         rewind(file);
         itoa(encoded_message_size_int, size_encoded_message, 10);
         write_socket(socket, size_encoded_message, SHORT_MESSAGE);  // Sending Message Size
@@ -49,7 +56,7 @@ int main(int argc, char* argv[]) {
         start = 0;
         while (fread(decoded_msg, 1, DECODED, file) > 0) {  // reads 26 bytes from the file
             convert_msg_to_char_arr(decoded_msg, expanded_decoded_message, DECODED);
-            update_expanded_message_buffer(start*DECODED*8, expanded_decoded_message);
+            update_expanded_message_buffer(start * DECODED * 8, expanded_decoded_message);
             start++;
         }
 
@@ -94,11 +101,9 @@ void convert_msg_to_char_arr(char* orig_msg, char* parsed_msg, int orig_msg_size
             val = BIT_EVAL_R(orig_msg[i], j);
             if (val == 1) {
                 parsed_msg[8 * i + (8 - 1 - j)] = '1';
-            }
-            else {
+            } else {
                 parsed_msg[8 * i + (8 - 1 - j)] = '0';
             }
-             
         }
     }
 }
@@ -110,7 +115,7 @@ void copy_n_chars(char* source, char* dest, int start, int n) {
 }
 
 void update_expanded_message_buffer(int start, char* decoded_msg) {
-    for (int i = 0; i < DECODED*8; i++) {
+    for (int i = 0; i < DECODED * 8; i++) {
         EXPANDED_MESSAGE[start + i] = decoded_msg[i];
     }
 }
@@ -199,7 +204,7 @@ void update_buffer(char encoded_msg[ENCODED], SOCKET socket, socketaddr addr) {
     }
     buff_current_size += ENCODED;
     if (buff_current_size > MAX_LENGTH - ENCODED) {  // should not get here because we did dynamic buffer allocation
-        Sleep(50);                                   
+        Sleep(50);
         write_socket(socket, SENDER_BUFFER, buff_current_size);
         buff_current_size = 0;
     }
