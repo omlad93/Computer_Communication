@@ -1,14 +1,12 @@
 #pragma once
 #include "receiver.h"
 
-
-
 void convert_char_arr_to_mgs(char* orig_msg, char* parsed_msg, int orig_msg_size) {
     for (int i = 0; i < orig_msg_size; i++) {
         orig_msg[i] = (char)(0);
         for (int j = 0; j < 8; j++) {
-            if (parsed_msg[8*i + j] == '1') {
-                orig_msg[i] = BIT_SET1_R(orig_msg[i], 8-1-j);
+            if (parsed_msg[8 * i + j] == '1') {
+                orig_msg[i] = BIT_SET1_R(orig_msg[i], 8 - 1 - j);
             }
         }
     }
@@ -17,8 +15,7 @@ void convert_char_arr_to_mgs(char* orig_msg, char* parsed_msg, int orig_msg_size
 /*
     Writes the parsed message received from channel
 */
-void update_receiver_file(FILE* file, char* msg,int num_of_byts) {
-
+void update_receiver_file(FILE* file, char* msg, int num_of_byts) {
     receiver_stats->num_written += num_of_byts;
     fwrite(msg, sizeof(char), num_of_byts, file);
     received_msg_size = 0;
@@ -32,7 +29,7 @@ void fix_hamming_message(char* msg, char* fixed_msg, int msg_size) {
     char substring[ENCODED] = {0};
     uint32_t int_msg, fixed_msg_int;
     for (int i = 0; i < (msg_size / ENCODED); i++) {
-        calc_curr_substring(i*ENCODED, msg, substring);
+        calc_curr_substring(i * ENCODED, msg, substring);
         int_msg = convert_msg_to_int(substring);
         fixed_msg_int = fix_hamming_substring(int_msg);
         receiver_stats->num_received += ENCODED;
@@ -47,8 +44,7 @@ void add_stripped_substring_to_buffer(char* fixed_msg, int fixed_msg_int, int st
         if (i != 0 && i != 1 && i != 3 && i != 7 && i != 15) {
             if ((fixed_msg_int >> i & 1)) {
                 fixed_msg[start + index] = '1';
-            }
-            else {
+            } else {
                 fixed_msg[start + index] = '0';
             }
             index++;
@@ -132,10 +128,10 @@ uint32_t fix_hamming_substring(uint32_t int_msg) {
     return stripped;
 }
 
- /*respond_to_sender(SOCKET socket) {
-    char msg[100];
-    sprintf_s(msg, sizeof(msg), "%d %d %d", receiver_stats->num_received, receiver_stats->num_written, receiver_stats->num_errors_fixed);
-    write_socket(socket, msg, 100);
+/*respond_to_sender(SOCKET socket) {
+   char msg[100];
+   sprintf_s(msg, sizeof(msg), "%d %d %d", receiver_stats->num_received, receiver_stats->num_written, receiver_stats->num_errors_fixed);
+   write_socket(socket, msg, 100);
 }*/
 
 void print_receiver_output() {
@@ -151,11 +147,11 @@ int main(int argc, char* argv[]) {
     int message_size_int, encoded_message_size_int;
     char filename[MAX_LENGTH];
     char message_size_str[SHORT_MESSAGE];
-    char* fixed_msg;  
+    char* fixed_msg;
     char* origin_message;
     int status = 0;
-        if (argc == 4) {
-        if (not(strcmp(argv[3], "-debug"))) { //DEBUG MODE
+    if (argc == 4) {
+        if (not(strcmp(argv[3], "-debug"))) {  // DEBUG MODE
             log_err("working on debug mode (Fixed Port & Local IP)");
             port = HC_RECEIVER_PORT;
             ip = HC_RECEIVER_IP;
@@ -168,7 +164,7 @@ int main(int argc, char* argv[]) {
     memset(&channel_addr, 0, sizeof(channel_addr));
     set_address(&channel_addr, port, ip);
     assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied", WSAGetLastError());
-    receiver_stats = (stats*)calloc(1, sizeof(stats));
+
     received_msg_size = 0;
 
     // ask for file
@@ -176,30 +172,26 @@ int main(int argc, char* argv[]) {
     printf("Please enter file name\n");
     assert(scanf("%s", filename) != 0, "Scanning Failed");
 
-    //strcpy(filename, HC_OUTPUT);
-
     while (strcmp(filename, "quit") != 0) {
-        
-
+        receiver_stats = (stats*)calloc(1, sizeof(stats));
         // read message size
         status = read_socket(socket, message_size_str, SHORT_MESSAGE);
-        encoded_message_size_int = atoi(message_size_str); //expanded encoded message size
+        encoded_message_size_int = atoi(message_size_str);  // expanded encoded message size
         printf("\tReceived: %d bytes\n", encoded_message_size_int / 8);
 
-        message_size_int = (encoded_message_size_int / ENCODED) * DECODED; //expanded decoded message size
+        message_size_int = (encoded_message_size_int / ENCODED) * DECODED;  // expanded decoded message size
         RECEIVER_BUF = (char*)malloc(encoded_message_size_int * sizeof(char));
         fixed_msg = (char*)malloc(message_size_int * sizeof(char));
-        origin_message = (char*)malloc((message_size_int/8 + 1) * sizeof(char)); // orifinal message 
+        origin_message = (char*)malloc((message_size_int / 8 + 1) * sizeof(char));  // original message
 
         status = read_socket(socket, RECEIVER_BUF, encoded_message_size_int);
-        printf("\tGot message from socket (Channel) [%dB]\n", encoded_message_size_int);
+
         // encode hamming message
         fix_hamming_message(RECEIVER_BUF, fixed_msg, encoded_message_size_int);
         convert_char_arr_to_mgs(origin_message, fixed_msg, message_size_int / 8);
         origin_message[message_size_int / 8] = '\0';
 
-        //itoa(fixed_msg_int, msg, 10);
-        // write the received message to file
+        //  write the received message to file
         assert(fopen_s(&file, filename, "w") == 0, "Error in opening file\n");
         printf("\tWriting file: %s According to Data Received from the Noisy-Channel \n", filename);
         update_receiver_file(file, origin_message, message_size_int / 8);
@@ -207,13 +199,13 @@ int main(int argc, char* argv[]) {
         printf("\tWrote : %d bytes\n", message_size_int / 8);
         printf("\tCorrected : %d errors\n", receiver_stats->num_errors_fixed);
 
-
         closesocket(socket);
         WSACleanup();
-        
+
         free(fixed_msg);
         free(RECEIVER_BUF);
-
+        free(receiver_stats);
+        free(origin_message);
         // open new socket and connect
         socket = create_socket();
         assert(connect(socket, (SOCKADDR*)&channel_addr, sizeof(channel_addr)) != SOCKET_ERROR, "connection falied");

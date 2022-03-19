@@ -61,7 +61,7 @@ void apply_randomized(Noise_p noise, str data, int size, int verbose) {
             data[i] = BYTE_FLIP(data[i]);
             noise->flipped++;
             if (verbose) {
-                printf("\t%d) flipped bit %d from %c to %c\n", noise->flipped, i, BYTE_FLIP(data[i]),data[i]);
+                printf("\t%d) flipped bit %d from %c to %c\n", noise->flipped, i, BYTE_FLIP(data[i]), data[i]);
             }
         }
     }
@@ -71,12 +71,13 @@ void apply_randomized(Noise_p noise, str data, int size, int verbose) {
     apply noise on incoming data, according to noise model
 */
 void apply_noise(Noise_p noise, str data, int size, int verbose) {
+    noise->flipped = 0;
     if (not(strcmp(noise->type, RANDOMIZE))) {
         apply_randomized(noise, data, size, verbose);
     } else {
         apply_deterministic(noise, data, size, verbose);
     }
-    noise->transmitted += size;
+    noise->transmitted = size;
 }
 
 /*
@@ -121,7 +122,7 @@ int main(int argc, char* argv[]) {
     double ratio;
     assert_num((argc <= 5) & (argc >= 3), "Noisy Channel Got Unexpected Numer og Arguments", argc);
     int debug_mode = FALSE;
-    if ((argc == 5) or ((argc == 4) and (not(strcmp(argv[1], "-d"))))) { //DEBUG MODE
+    if ((argc == 5) or ((argc == 4) and (not(strcmp(argv[1], "-d"))))) {  // DEBUG MODE
         if (not(strcmp(argv[argc - 1], "-debug"))) {
             log_err("working on debug mode (Fixed Ports & Verbose)");
             debug_mode = TRUE;
@@ -129,7 +130,7 @@ int main(int argc, char* argv[]) {
     }
     noise_type = argv[1];
     a1 = atoi(argv[2]);
-    a2 = (not(strcmp(argv[1],RANDOMIZE))) ? atoi(argv[3]) : 0;
+    a2 = (not(strcmp(argv[1], RANDOMIZE))) ? atoi(argv[3]) : 0;
     Noise_p noise = (Noise_p)(calloc(1, sizeof(Noise)));
     fd_set sender_fds, receiver_fds;
     socketaddr receiver_sa, sender_sa;
@@ -150,7 +151,7 @@ int main(int argc, char* argv[]) {
         message_size_int = atoi(message_size_str);
         channel_buffer = (str)calloc(message_size_int, sizeof(char));
         size = read_socket(sender_socket, channel_buffer, message_size_int);  // ADD SIZE PARSING
-        printf("\tReceived message from socket (Sender) [%dB]\n", message_size_int);
+        printf("\tReceived message from socket (Sender) [%dB]\n", message_size_int / BITS_PER_BYTE);
 
         //  Apply Noise
         apply_noise(noise, channel_buffer, size, debug_mode);
@@ -158,10 +159,14 @@ int main(int argc, char* argv[]) {
         // Write to Receiver:
         write_size = write_socket(receiver_socket, message_size_str, SHORT_MESSAGE);   // ADD SIZE PARSING
         write_size = write_socket(receiver_socket, channel_buffer, message_size_int);  // ADD SIZE PARSING
-        printf("\tSent message to socket (Receiver) [%dB]\n", message_size_int);
+        printf("\tSent message to socket (Receiver) [%dB]\n", message_size_int / BITS_PER_BYTE);
 
         closesocket(receiver_socket);
         closesocket(sender_socket);
+        ratio = 100 * ((float)noise->flipped / (float)(noise->transmitted));
+        printf("\tTransffered %d bits [%dB], Applied Noise on %d bits (%f%% from all bits)\n",
+               noise->transmitted, (int)(noise->transmitted / BITS_PER_BYTE), noise->flipped, ratio);
+
         do {
             log_err("continue?");
             assert(scanf("%s", user_command) != 0, "Scanning Failed");
@@ -169,9 +174,7 @@ int main(int argc, char* argv[]) {
             if (not(strcmp(user_command, "no"))) break;
         } while (TRUE);
     }
-    ratio = 100 * ((float)noise->flipped / (float)(noise->transmitted));
-    printf("\tTransffered %d bits [%dB], Applied Noise on %d bits (%f%% from all bits)\n",
-           noise->transmitted,(int)(noise->transmitted/BITS_PER_BYTE), noise->flipped, ratio);
+
     free(noise);
     closesocket(listen_socket_sender);
     closesocket(listen_socket_receiver);

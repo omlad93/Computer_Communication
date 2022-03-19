@@ -33,10 +33,9 @@ int main(int argc, char* argv[]) {
     printf("Please enter file name\n");
 
     assert(scanf("%s", filename) != 0, "Scanning Failed");
-    strcpy(filename, HC_INPUT);
 
     while (strcmp(filename, "quit") != 0) {
-        assert(fopen_s(&file, filename, "r") == 0, "Error in openning file\n");
+        assert(fopen_s(&file, filename, "r") == 0, "Error in opening file\n");
         printf("\tSending file: %s to Receiver Through the Noisy-Channel \n", filename);
 
         // Send to Channel: Size + Message
@@ -69,10 +68,7 @@ int main(int argc, char* argv[]) {
 
         printf("\tSent : %d bytes\n", encoded_message_size_int / 8);
 
-        printf("\tSent message to socket (Channel) [%dB]\n", encoded_message_size_int);
-
         // close socket and report number of bytes that were witten and read
-        print_output();
         closesocket(socket);
         free(SENDER_BUFFER);
         free(EXPANDED_MESSAGE);
@@ -82,11 +78,11 @@ int main(int argc, char* argv[]) {
         // open new socket and connect
         socket = create_socket();
         assert_num(connect(socket, (SOCKADDR*)&channel_addr, sizeof(struct sockaddr)) != SOCKET_ERROR, "connection falied", WSAGetLastError());
-        // ask for new filename (if "quit" - close the socket)
         printf("Please enter file name\n");
         assert(scanf("%s", filename) != 0, "Scanning Failed");
     }
-    log_err("\tFinished");
+    log_err("Finished");
+
     // cleanup
     shutdown(socket, SD_BOTH);
     closesocket(socket);
@@ -190,11 +186,6 @@ uint32_t convert_msg_to_int(char* msg) {
         }
     }
     return msg_int;
-}
-
-// TODO
-int print_output() {
-    return 0;
 }
 
 /* Updates sender buffer with next chunk of encoded 31 bits */
