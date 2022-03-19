@@ -9,7 +9,11 @@ The exercise will be presented in pairs:
 In order to build the solution correctly we used a 4 Visual-Studio projects:  
 one for each module (Sender, Receiver, Noisy-Channel) and utils functions library.
 In this way each solution can be built and debugged independently but code can still be shared.  
-The main project (due to our definition) is `noisy_channel` but it can be configured differently.
+The main project (due to our definition) is `noisy_channel` but it can be configured differently.  
+
+## Important Information
+**the above section means that our Release and Debug folder with all the executable are:**  
+`{ZIP_ROOT}\\noisy_channel\Release` and `{ZIP_ROOT}\\noisy_channel\Debug`
 
 ## Initialization Process on Visual Studio  
 In order to be able to build the  `solution` properly, make sure to follow this steps:
