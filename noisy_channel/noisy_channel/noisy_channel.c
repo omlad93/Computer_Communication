@@ -7,6 +7,17 @@
 #include "noisy_channel.h"
 
 /*
+    load 2 floats using two parts of 32 bits uint
+    uses a single draw for both.
+*/
+float load_randoms_16b(float rnd[2]) {
+    unsigned int uint_p[1];
+    assert(not(rand_s(&uint_p[0])), "rand_s() Failed");
+    rnd[0] = (float)(uint_p[0] & LOW_16)/(float)(LOW_16);        // use low  16 bits of random uint to make float
+    rnd[1] = (float)((uint_p[0] & HIGH_16)>>16)/(float)(LOW_16); // use high 16 bits of random uint to make float
+}
+
+/*
     set noise with proper parameters according to user input
 */
 void generate_noise(Noise_p noise, str noise_type, int a1, int a2) {
@@ -25,8 +36,6 @@ void generate_noise(Noise_p noise, str noise_type, int a1, int a2) {
         noise->n = a1;
         printf("\tGenerated Noise: Deterministic(%d)\n", noise->n);
     }
-    noise->flipped = 0;
-    noise->transmitted = 0;
 }
 
 /*
@@ -55,19 +64,23 @@ void apply_deterministic(Noise_p noise, str data, int size, int verbose) {
     Called by apply_noise(...)
 */
 void apply_randomized(Noise_p noise, str data, int size, int verbose) {
-    int flipping;  // should flip
-    float rnd;
+    int flip[2];  // should flip
+    float rnd[2];
     if (verbose) {
         printf("\tApplying Noise on a %d bits message: Excpecting ~%d flips\n", size, (int)(size * noise->probability));
     }
-    for (int i = 0; i < size; i++) {
-        rnd = (float)(rand()) / (float)(RAND_MAX);
-        flipping = rnd <= noise->probability;
-        if (flipping) {
-            data[i] = BYTE_FLIP(data[i]);
-            noise->flipped++;
-            if (verbose) {
-                printf("\t%d) flipped bit %d from %c to %c\n", noise->flipped, i, BYTE_FLIP(data[i]), data[i]);
+    for (int i = 0; i < size; i += 2) {
+        load_randoms_16b(rnd);
+        noise->draws++;
+        flip[0] = rnd[0] <= noise->probability;
+        flip[1] = rnd[1] <= noise->probability;
+        for (int offset = 0;offset < 2;offset++) {
+            if (flip[offset]) {
+                data[i + offset] = BYTE_FLIP(data[i + offset]);
+                noise->flipped++;
+                if (verbose) {
+                    printf("\t%d) flipped bit %d from %c to %c\n", noise->flipped, i + offset, BYTE_FLIP(data[i + offset]), data[i + offset]);
+                }
             }
         }
     }
@@ -78,6 +91,8 @@ void apply_randomized(Noise_p noise, str data, int size, int verbose) {
 */
 void apply_noise(Noise_p noise, str data, int size, int verbose) {
     noise->flipped = 0;
+    noise->transmitted = 0;
+    noise->draws = 0;
     if (not(strcmp(noise->type, RANDOMIZE))) {
         apply_randomized(noise, data, size, verbose);
     } else {
@@ -170,8 +185,8 @@ int main(int argc, char* argv[]) {
         closesocket(receiver_socket);
         closesocket(sender_socket);
         ratio = 100 * ((float)noise->flipped / (float)(noise->transmitted));
-        printf("\tTransffered %d bits [%dB], Applied Noise on %d bits (%f%% from all bits)\n",
-               noise->transmitted, (int)(noise->transmitted / BITS_PER_BYTE), noise->flipped, ratio);
+        printf("\tTransffered %d bits [%dB], Applied Noise on %d bits (%f%% from all bits) using %d draws \n",
+               noise->transmitted, (int)(noise->transmitted / BITS_PER_BYTE), noise->flipped, ratio, noise->draws);
 
         do {
             log_err("continue?");

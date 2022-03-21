@@ -173,6 +173,29 @@ The noise definition is implemented using the Noise struct and applied on the da
 When the channel is done with a transaction, it waits for user response for the question `continue?`.  
 if the user answer anything besides `yes` or `no` the question will appear again, as demonstrated here:  
 
+## Noise Model: (**Includes Bonus Implementation**)
+During the implementation of the noise we encountered a difficulty in generating the required distribution.  
+Since standard `rand()` function returns a random 15-bit number it can't be used to provide accuracy required for
+<img src="https://render.githubusercontent.com/render/math?math=\frac{n}{2^16}"> as described in the assignment.
+In order to be able to generate proper random distribution we used another 'hidden' function from std: using thr macro definition: 
+```C
+#define _CRT_RAND_S
+```
+We reached the following section in `<stdlib.h>`
+```C
+#if defined _CRT_RAND_S || defined _CRTBLD
+    _ACRTIMP errno_t __cdecl rand_s(_Out_ unsigned int* _RandomValue);
+#endif
+```
+Allowing us to use `rand_s()` in our code to generate a 32-bit random integer in a single draw.  
+After overcoming this, we understood that given 32 bits (in a single draw) we separate them into 2x(16-bits integers).  
+Using the two integers we generated two floats with Uniform distribution in range (0.0,1.0).  
+**This Means we are using 
+<img src="https://render.githubusercontent.com/render/math?math=\frac{1}{2}n"> 
+draws for
+<img src="https://render.githubusercontent.com/render/math?math=n">
+bits**
+
 
 ## Sender & Receiver
 the Sender and the Receiver modules are implemented as described in the assignment.  

@@ -1,2 +1,4 @@
-﻿  LINK : program database C:\Users\omlad\source\repos\CC1\noisy_channel\Debug\receiver.pdb missing; performing full link
+﻿  utils.c
+  receiver.c
+  Generating Code...
   receiver.vcxproj -> C:\Users\omlad\source\repos\CC1\noisy_channel\Debug\receiver.exe
